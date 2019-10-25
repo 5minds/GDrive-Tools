@@ -5,6 +5,34 @@ class DocumentCreator():
     self.__googleDriveClient = googleDriveClient
     self.__googleDocsClient = googleDocsClient
 
+  """
+  Creates a new file at the given path in the team clipboard with the passed
+  id.
+
+  If the given path in the shared clipboard does not exists, the given directories
+  will be created.
+
+  Args:
+    teamClipboardId (str):  The id of the clipboard, where the document should be
+                            created.
+
+    destination (str):      Target, where the new document should be placed.
+
+    documentName (str):     Name of the new document.
+
+    type (int):             Type Identifier which defines the document type that
+                            should be created.
+
+  Todo:
+    * Parse the Destination from any given input string into a list of directories.
+      Currently, it is only supported to provide a list of directories instead of
+      a 'real' path as a string.
+
+    * Support all different google docs types:
+      At the current state, it is only possible to create google text documents.
+      In the final version, it should be possible to create any type of google
+      document.
+  """
   def createFile(self,
     teamClipBoardId: str,
     destination, documentName: str, type):
