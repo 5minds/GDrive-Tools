@@ -1,6 +1,18 @@
 from pathlib import Path
 
 class DocumentCreator():
+
+  """
+  Creates a new instance of the document creator. The identity is
+  taken from the provided googleDrive and googleDocs client.
+
+  Args:
+    googleDriveClient (any):  Reference to the google drive service, which
+                              should be used.
+
+    googleDocsClient (any): Reference to the google document service, which
+                              should be used.
+  """
   def __init__(self, googleDriveClient, googleDocsClient):
     self.__googleDriveClient = googleDriveClient
     self.__googleDocsClient = googleDocsClient
