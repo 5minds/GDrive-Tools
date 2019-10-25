@@ -3,7 +3,7 @@
 # Edit at https://www.gitignore.io/?templates=python,visualstudiocode
 
 credentials.json
-token_pickle
+*.pickle
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
