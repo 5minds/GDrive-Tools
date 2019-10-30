@@ -1,3 +1,5 @@
+from googleapiclient.discovery import build
+
 class GDriveTools():
 
   """
@@ -11,9 +13,11 @@ class GDriveTools():
     googleDocsClient (any): Reference to the google document service, which
                               should be used.
   """
-  def __init__(self, googleDriveClient, googleDocsClient):
-    self.__googleDriveClient = googleDriveClient
-    self.__googleDocsClient = googleDocsClient
+  def __init__(self, creds):
+    self.__googleDriveClient = build('drive', 'v3', credentials=creds)
+    self.__googleDocsClient = build('docs', 'v1', credentials=creds)
+    self.__googleSheetsClient = build('sheets', 'v4', credentials=creds)
+    self.__googleSlidesClient = build('slides', 'v1', credentials=creds)
 
   """
   Creates a new file at the given path in the team clipboard with the passed

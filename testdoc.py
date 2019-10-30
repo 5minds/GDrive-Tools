@@ -11,15 +11,15 @@ SCOPES = ['https://www.googleapis.com/auth/documents',
 'https://www.googleapis.com/auth/drive']
 
 def main():
-  docService, drvService = createServices()
-  googleDriveTools = gt.GDriveTools(drvService, docService)
+  creds = getCredentials()
+  googleDriveTools = gt.GDriveTools(creds)
 
   clipboardId = '0ALjbkdGck0cgUk9PVA'
   dest = 'testi/test'
 
   googleDriveTools.createFile('GDriveTools_Test', dest, 'moep', None)
 
-def createServices():
+def getCredentials():
   creds = None
   # The file token.pickle stores the user's access and refresh tokens, and is
   # created automatically when the authorization flow completes for the first
@@ -42,7 +42,7 @@ def createServices():
   docService = build('docs', 'v1', credentials=creds)
   drvService = build('drive', 'v3', credentials=creds)
 
-  return docService, drvService
+  return creds
 
 if __name__ == '__main__':
   main()
