@@ -1,3 +1,7 @@
+from googleapiclient.discovery import build
+
+from .google_filetypes import GoogleFiletypes
+
 class GDriveTools():
 
   """
@@ -11,9 +15,11 @@ class GDriveTools():
     googleDocsClient (any): Reference to the google document service, which
                               should be used.
   """
-  def __init__(self, googleDriveClient, googleDocsClient):
-    self.__googleDriveClient = googleDriveClient
-    self.__googleDocsClient = googleDocsClient
+  def __init__(self, creds):
+    self.__googleDriveClient = build('drive', 'v3', credentials=creds)
+    self.__googleDocsClient = build('docs', 'v1', credentials=creds)
+    self.__googleSheetsClient = build('sheets', 'v4', credentials=creds)
+    self.__googleSlidesClient = build('slides', 'v1', credentials=creds)
 
   """
   Creates a new file at the given path in the team clipboard with the passed
@@ -46,7 +52,8 @@ class GDriveTools():
   def createFile(self,
     sharedDriveName: str,
     destination: str,
-    documentName: str, type):
+    documentName: str,
+    fileType: GoogleFiletypes):
 
     # Convert the given Path into a List
     destinationList = self.__getPathListForPath(destination)
@@ -65,7 +72,7 @@ class GDriveTools():
       targetDirectoryId = self.__createMissingDirectories(missingDirectoryNames, targetDirectoryId)
 
     # Create the Document
-    createdDocumentId = self.__createDocument(documentName)
+    createdDocumentId = self.__createFile(documentName, fileType)
 
     # After creation, we have to move the document to the target
     # directory. This is because there seems to be no way to directly attach
@@ -153,6 +160,23 @@ class GDriveTools():
     return createdDirectory.get('id')
 
 
+  def __createFile(self, name, filetype):
+    createdFileId = ''
+
+    if filetype == GoogleFiletypes.DOCUMENT:
+      createdFileId = self.__createDocument(name)
+
+    elif filetype == GoogleFiletypes.SHEET:
+      createdFileId = self.__createSheet(name)
+
+    elif filetype == GoogleFiletypes.SLIDE:
+      createdFileId = self.__createSlide(name)
+
+    else:
+      raise ValueError('The Given Filetype is not valid!')
+
+    return createdFileId
+
   def __createDocument(self, documentName):
     requestBody = {
       'title': documentName
@@ -160,6 +184,28 @@ class GDriveTools():
     createdDocument = self.__googleDocsClient.documents().create(body=requestBody, fields='documentId').execute()
 
     return createdDocument.get('documentId')
+
+  def __createSheet(self, sheetName):
+    requestBody = {
+      'properties': {
+        'title': sheetName
+      }
+    }
+
+    createdSpreadsheetId = self.__googleSheetsClient.spreadsheets()\
+      .create(body=requestBody, fields='spreadsheetId').execute()
+
+    return createdSpreadsheetId.get('spreadsheetId')
+
+  def __createSlide(self, slideName):
+    requestBody = {
+      'title': slideName
+    }
+
+    presentation = self.__googleSlidesClient.presentations() \
+        .create(body=requestBody).execute()
+
+    return presentation.get('presentationId')
 
   def __moveDocumentToDirectory(self, documentIdToMove, targetDirectoryId):
     fetchedDocument = self.__googleDriveClient.files().get(fileId=documentIdToMove, fields='parents').execute()
