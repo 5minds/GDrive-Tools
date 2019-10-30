@@ -50,7 +50,6 @@ class GDriveTools():
 
     # Convert the given Path into a List
     destinationList = self.__getPathListForPath(destination)
-    print(destinationList)
 
     # Try to obtain the id of the drive with the given name
     sharedDriveId = self.__getIdOfSharedDrive(sharedDriveName)
