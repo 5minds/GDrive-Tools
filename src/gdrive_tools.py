@@ -54,7 +54,7 @@ class GDriveTools():
 
     directoryTreeForFile = self.__buildDirectoryListForPath(directoriesFromClipboard, destination, sharedDriveId)
 
-    targetDirectoryId = directoryTreeForFile[-1] if len(directoryTreeForFile) > 0 else sharedDriveId
+    targetDirectoryId = directoryTreeForFile[-1].get('id') if len(directoryTreeForFile) > 0 else sharedDriveId
     if len(directoryTreeForFile) < len(destination):
       existingDirectoryNames = [curDir['name'] for curDir in directoryTreeForFile]
       missingDirectoryNames = [curDir for curDir in destination if curDir not in existingDirectoryNames]
