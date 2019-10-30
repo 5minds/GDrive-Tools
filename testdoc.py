@@ -5,10 +5,11 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 
 import src.gdrive_tools as gt
+from src.google_filetypes import GoogleFiletypes
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/documents',
-'https://www.googleapis.com/auth/drive']
+'https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/presentations']
 
 def main():
   creds = getCredentials()
@@ -17,7 +18,9 @@ def main():
   clipboardId = '0ALjbkdGck0cgUk9PVA'
   dest = 'testi/test'
 
-  googleDriveTools.createFile('GDriveTools_Test', dest, 'moep', None)
+  googleDriveTools.createFile('GDriveTools_Test', dest, 'document', GoogleFiletypes.DOCUMENT)
+  googleDriveTools.createFile('GDriveTools_Test', dest, 'sheet', GoogleFiletypes.SHEET)
+  googleDriveTools.createFile('GDriveTools_Test', dest, 'slide', GoogleFiletypes.SLIDE)
 
 def getCredentials():
   creds = None
