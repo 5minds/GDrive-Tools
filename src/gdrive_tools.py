@@ -44,18 +44,32 @@ class GDriveTools():
       document.
   """
   def createFile(self,
-    teamClipBoardId: str,
-    destination, documentName: str, type):
+    sharedDriveName: str,
+    destination,
+    documentName: str, type):
 
-    directoriesFromClipboard = self.__getAllDirectoriesFromClipboard(teamClipBoardId)
-    directoryTreeForFile = self.__buildDirectoryListForPath(directoriesFromClipboard, destination, teamClipBoardId)
+    # Try to obtain the id of the drive with the given name
+    sharedDriveId = self.__getIdOfSharedDrive(sharedDriveName)
 
-    targetDirectoryId = directoryTreeForFile[-1] if len(directoryTreeForFile) > 0 else teamClipBoardId
+    print(sharedDriveId)
+
+    directoriesFromClipboard = self.__getAllDirectoriesFromClipboard(sharedDriveId)
+
+    directoryTreeForFile = self.__buildDirectoryListForPath(directoriesFromClipboard, destination, sharedDriveId)
+
+    print(directoriesFromClipboard)
+    print(directoryTreeForFile)
+
+    print('Create Target Directories')
+    targetDirectoryId = directoryTreeForFile[-1] if len(directoryTreeForFile) > 0 else sharedDriveId
     if len(directoryTreeForFile) < len(destination):
       existingDirectoryNames = [curDir['name'] for curDir in directoryTreeForFile]
       missingDirectoryNames = [curDir for curDir in destination if curDir not in existingDirectoryNames]
+      print(missingDirectoryNames)
+
       targetDirectoryId = self.__createMissingDirectories(missingDirectoryNames, targetDirectoryId)
 
+    print('Create Document')
     # Create the Document
     createdDocumentId = self.__createDocument(documentName)
 
@@ -64,11 +78,33 @@ class GDriveTools():
     # a newly created document to a parent.
     self.__moveDocumentToDirectory(createdDocumentId, targetDirectoryId)
 
+  def __getIdOfSharedDrive(self, driveName):
+    drives = self.__googleDriveClient.drives()\
+      .list(fields='drives')\
+      .execute()\
+      .get('drives')
+
+    idForDrive = ""
+
+    for currentDrive in drives:
+      if currentDrive['name'] == driveName:
+        idForDrive = currentDrive['id']
+        break
+
+    if not idForDrive:
+      raise ValueError(f'Could not find a drive with name "{driveName}"')
+
+    return idForDrive
+
   def __getAllDirectoriesFromClipboard(self, clipboardId):
     files = self.__googleDriveClient \
       .files() \
       .list(
         q="mimeType = 'application/vnd.google-apps.folder'",
+        corpora='drive',
+        supportsAllDrives=True,
+        driveId=clipboardId,
+        includeItemsFromAllDrives=True,
         fields='files(id, name, mimeType, parents)').execute()
 
     return files['files']
@@ -119,7 +155,7 @@ class GDriveTools():
       'parents': [parentId]
     }
 
-    createdDirectory = self.__googleDriveClient.files().create(body=metadata, fields='id').execute()
+    createdDirectory = self.__googleDriveClient.files().create(body=metadata, supportsTeamDrives=True, fields='id').execute()
     return createdDirectory.get('id')
 
 
@@ -137,4 +173,5 @@ class GDriveTools():
     self.__googleDriveClient.files().update(fileId=documentIdToMove,
                                   addParents=targetDirectoryId,
                                   removeParents=previous_parents,
+                                  supportsAllDrives=True,
                                   fields='id, parents').execute()
