@@ -45,19 +45,23 @@ class GDriveTools():
   """
   def createFile(self,
     sharedDriveName: str,
-    destination,
+    destination: str,
     documentName: str, type):
+
+    # Convert the given Path into a List
+    destinationList = self.__getPathListForPath(destination)
+    print(destinationList)
 
     # Try to obtain the id of the drive with the given name
     sharedDriveId = self.__getIdOfSharedDrive(sharedDriveName)
     directoriesFromClipboard = self.__getAllDirectoriesFromClipboard(sharedDriveId)
 
-    directoryTreeForFile = self.__buildDirectoryListForPath(directoriesFromClipboard, destination, sharedDriveId)
+    directoryTreeForFile = self.__buildDirectoryListForPath(directoriesFromClipboard, destinationList, sharedDriveId)
 
     targetDirectoryId = directoryTreeForFile[-1].get('id') if len(directoryTreeForFile) > 0 else sharedDriveId
-    if len(directoryTreeForFile) < len(destination):
+    if len(directoryTreeForFile) < len(destinationList):
       existingDirectoryNames = [curDir['name'] for curDir in directoryTreeForFile]
-      missingDirectoryNames = [curDir for curDir in destination if curDir not in existingDirectoryNames]
+      missingDirectoryNames = [curDir for curDir in destinationList if curDir not in existingDirectoryNames]
 
       targetDirectoryId = self.__createMissingDirectories(missingDirectoryNames, targetDirectoryId)
 
@@ -166,3 +170,8 @@ class GDriveTools():
                                   removeParents=previous_parents,
                                   supportsAllDrives=True,
                                   fields='id, parents').execute()
+
+  def __getPathListForPath(self, sourcePath):
+    pathList = sourcePath.split('/')
+
+    return pathList if pathList[0] != '' else pathList[1:]

@@ -15,9 +15,9 @@ def main():
   googleDriveTools = gt.GDriveTools(drvService, docService)
 
   clipboardId = '0ALjbkdGck0cgUk9PVA'
-  dest = ['Testi', 'Test']
+  dest = 'testi/test'
 
-  googleDriveTools.createFile('GDriveTools_Test', dest, 'bla', None)
+  googleDriveTools.createFile('GDriveTools_Test', dest, 'moep', None)
 
 def createServices():
   creds = None
