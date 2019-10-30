@@ -1,6 +1,4 @@
-from pathlib import Path
-
-class DocumentCreator():
+class GDriveTools():
 
   """
   Creates a new instance of the document creator. The identity is

@@ -4,7 +4,7 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 
-import src.document_creator as dc
+import src.gdrive_tools as gt
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/documents',
@@ -12,12 +12,12 @@ SCOPES = ['https://www.googleapis.com/auth/documents',
 
 def main():
   docService, drvService = createServices()
-  documentCreator = dc.DocumentCreator(drvService, docService)
+  googleDriveTools = gt.GDriveTools(drvService, docService)
 
   clipboardId = '0ALjbkdGck0cgUk9PVA'
   dest = ['Testi', 'Test']
 
-  documentCreator.createFile(clipboardId, dest, 'bla', None)
+  googleDriveTools.createFile(clipboardId, dest, 'bla', None)
 
 def createServices():
   creds = None
