@@ -17,7 +17,7 @@ def main():
   clipboardId = '0ALjbkdGck0cgUk9PVA'
   dest = ['Testi', 'Test']
 
-  googleDriveTools.createFile(clipboardId, dest, 'bla', None)
+  googleDriveTools.createFile('GDriveTools_Test', dest, 'bla', None)
 
 def createServices():
   creds = None
