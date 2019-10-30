@@ -50,26 +50,16 @@ class GDriveTools():
 
     # Try to obtain the id of the drive with the given name
     sharedDriveId = self.__getIdOfSharedDrive(sharedDriveName)
-
-    print(sharedDriveId)
-
     directoriesFromClipboard = self.__getAllDirectoriesFromClipboard(sharedDriveId)
-
     directoryTreeForFile = self.__buildDirectoryListForPath(directoriesFromClipboard, destination, sharedDriveId)
 
-    print(directoriesFromClipboard)
-    print(directoryTreeForFile)
-
-    print('Create Target Directories')
     targetDirectoryId = directoryTreeForFile[-1] if len(directoryTreeForFile) > 0 else sharedDriveId
     if len(directoryTreeForFile) < len(destination):
       existingDirectoryNames = [curDir['name'] for curDir in directoryTreeForFile]
       missingDirectoryNames = [curDir for curDir in destination if curDir not in existingDirectoryNames]
-      print(missingDirectoryNames)
 
       targetDirectoryId = self.__createMissingDirectories(missingDirectoryNames, targetDirectoryId)
 
-    print('Create Document')
     # Create the Document
     createdDocumentId = self.__createDocument(documentName)
 
