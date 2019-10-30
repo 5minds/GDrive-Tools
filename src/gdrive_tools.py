@@ -51,6 +51,7 @@ class GDriveTools():
     # Try to obtain the id of the drive with the given name
     sharedDriveId = self.__getIdOfSharedDrive(sharedDriveName)
     directoriesFromClipboard = self.__getAllDirectoriesFromClipboard(sharedDriveId)
+
     directoryTreeForFile = self.__buildDirectoryListForPath(directoriesFromClipboard, destination, sharedDriveId)
 
     targetDirectoryId = directoryTreeForFile[-1] if len(directoryTreeForFile) > 0 else sharedDriveId
@@ -90,7 +91,7 @@ class GDriveTools():
     files = self.__googleDriveClient \
       .files() \
       .list(
-        q="mimeType = 'application/vnd.google-apps.folder'",
+        q="mimeType = 'application/vnd.google-apps.folder' and not trashed",
         corpora='drive',
         supportsAllDrives=True,
         driveId=clipboardId,
