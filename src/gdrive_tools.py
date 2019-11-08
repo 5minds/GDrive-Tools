@@ -74,17 +74,23 @@ class GDriveTools():
     self.__moveDocumentToDirectory(createdDocumentId, targetDirectoryId)
 
   def moveDocument(self, sharedDriveName: str, sourcePath: str, targetPath: str):
-    sourceDiretoryList = self.__getPathListForPath(sourcePath)
-    targetDirectoryList = self.__getPathListForPath(targetPath)
+    """
+    Moves a document from the given source- to a destination path.
 
+    Args:
+      sharedDriveName(str): Name of the Shared drive
+      sourcePath(str): The path of the document that should be moved.
+      targetPath(str): The path where the document should be moved to.
+    """
+    sourcePathAsList, sourceFileName = self.__getPathAndFilename(sourcePath)
+    targetDirectoryList = self.__getPathListForPath(targetPath)
     sharedDriveId = self.__getIdOfSharedDrive(sharedDriveName)
 
     everythingFromDrive = self.__getAllFilesOfDrive(sharedDriveId)
     directories, files = self.__orderDirectoriesAndFiles(everythingFromDrive)
 
-    srcDirectoryTree = self.__buildDirectoryListForPath(directories, sourceDiretoryList[:-1], sharedDriveId)
-    parentDirectoryId = srcDirectoryTree[-1].get('id')
-    documentId = self.__findDocumentIdWithParentId(files, sourceDiretoryList[-1], parentDirectoryId)
+    parentDirectoryId = self.__getParentDirectoryId(directories, sourcePathAsList, sharedDriveId)
+    documentId = self.__findDocumentIdWithParentId(files, sourceFileName, parentDirectoryId)
 
     targetDirectoryTree = self.__buildDirectoryListForPath(directories, targetDirectoryList, sharedDriveId)
     targetDirectoryId = self.__searchForTargetDirectory(targetDirectoryTree, sharedDriveId, targetDirectoryList)
@@ -265,6 +271,17 @@ class GDriveTools():
 
     return documentId
 
+  def __getParentDirectoryId(self, directories, path, sharedDriveId):
+    parentDirectoryId = ''
+    if len(path) == 0:
+      return sharedDriveId
+
+    else:
+      srcDirectoryTree = self.__buildDirectoryListForPath(directories, path, sharedDriveId)
+      parentDirectoryId = srcDirectoryTree[-1].get('id')
+
+    return parentDirectoryId
+
   def __moveDocumentToDirectory(self, documentIdToMove, targetDirectoryId):
     fetchedDocument = self.__googleDriveClient.files().get(supportsAllDrives=True, fileId=documentIdToMove, fields='parents').execute()
     previous_parents = ",".join(fetchedDocument.get('parents'))
@@ -277,3 +294,11 @@ class GDriveTools():
   def __getPathListForPath(self, sourcePath):
     pathList = sourcePath.split('/')
     return pathList if pathList[0] != '' else pathList[1:]
+
+  def __getPathAndFilename(self, pathAsString):
+    fullPath = self.__getPathListForPath(pathAsString)
+
+    if len(fullPath) == 1:
+      return [], fullPath[0]
+
+    return fullPath[:-1], fullPath[-1]
