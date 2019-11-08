@@ -16,15 +16,15 @@ def main():
   googleDriveTools = gt.GDriveTools(creds)
 
   clipboardId = '0ALjbkdGck0cgUk9PVA'
-  dest = 'testi/test'
+  dest = ''
 
-  # googleDriveTools.createFile('GDriveTools_Test', dest, 'document', GoogleFiletypes.DOCUMENT)
-  # googleDriveTools.createFile('GDriveTools_Test', dest, 'sheet', GoogleFiletypes.SHEET)
-  # googleDriveTools.createFile('GDriveTools_Test', dest, 'slide', GoogleFiletypes.SLIDE)
+  googleDriveTools.createFile('GDriveTools_Test', dest, 'document', GoogleFiletypes.DOCUMENT)
+  googleDriveTools.createFile('GDriveTools_Test', dest, 'sheet', GoogleFiletypes.SHEET)
+  googleDriveTools.createFile('GDriveTools_Test', dest, 'slide', GoogleFiletypes.SLIDE)
 
-  sourceDocumentPath = 'Testfolder/test'
+  # sourceDocumentPath = 'Testfolder/test'
 
-  googleDriveTools.moveDocument('GDriveTools_Test', sourceDocumentPath, 'bla')
+  # googleDriveTools.moveDocument('GDriveTools_Test', sourceDocumentPath, 'bla')
 
 
 def getCredentials():

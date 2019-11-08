@@ -62,8 +62,14 @@ class GDriveTools():
     sharedDriveId = self.__getIdOfSharedDrive(sharedDriveName)
     directoriesFromClipboard = self.__getAllDirectoriesFromClipboard(sharedDriveId)
 
-    directoryTreeForFile = self.__buildDirectoryListForPath(directoriesFromClipboard, destinationList, sharedDriveId)
-    targetDirectoryId = self.__searchForTargetDirectory(directoryTreeForFile, sharedDriveId, destinationList)
+    # If the target directory list is empty, the document should be created
+    # inside the root directory.
+    if len(destinationList) == 0:
+      targetDirectoryId = sharedDriveId
+
+    else:
+      directoryTreeForFile = self.__buildDirectoryListForPath(directoriesFromClipboard, destinationList, sharedDriveId)
+      targetDirectoryId = self.__searchForTargetDirectory(directoryTreeForFile, sharedDriveId, destinationList)
 
     # Create the Document
     createdDocumentId = self.__createFile(documentName, fileType)
@@ -156,14 +162,14 @@ class GDriveTools():
 
     return directories, files
 
-  def __buildDirectoryListForPath(self, directoryList, targetPath, baseId):
+  def __buildDirectoryListForPath(self, directoryList, targetPath, sharedDriveId):
     dirTree = []
     # Search the target in the root directory.
     # TODO: This should not actually be necessary here.
     # See, if this can be refactored.
     startDir = None
     for curDir in directoryList:
-      if (curDir['name'] == targetPath[0] and baseId in curDir['parents']):
+      if (curDir['name'] == targetPath[0] and sharedDriveId in curDir['parents']):
         startDir = curDir
         break
 
@@ -190,6 +196,7 @@ class GDriveTools():
 
   def __searchForTargetDirectory(self, directoryTree, sharedDriveId, destinationPath):
     targetDirectoryId = directoryTree[-1].get('id') if len(directoryTree) > 0 else sharedDriveId
+
     if len(directoryTree) < len(destinationPath):
       existingDirectoryNames = [curDir['name'] for curDir in directoryTree]
       missingDirectoryNames = [curDir for curDir in destinationPath if curDir not in existingDirectoryNames]
