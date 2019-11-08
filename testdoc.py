@@ -18,9 +18,14 @@ def main():
   clipboardId = '0ALjbkdGck0cgUk9PVA'
   dest = 'testi/test'
 
-  googleDriveTools.createFile('GDriveTools_Test', dest, 'document', GoogleFiletypes.DOCUMENT)
-  googleDriveTools.createFile('GDriveTools_Test', dest, 'sheet', GoogleFiletypes.SHEET)
-  googleDriveTools.createFile('GDriveTools_Test', dest, 'slide', GoogleFiletypes.SLIDE)
+  # googleDriveTools.createFile('GDriveTools_Test', dest, 'document', GoogleFiletypes.DOCUMENT)
+  # googleDriveTools.createFile('GDriveTools_Test', dest, 'sheet', GoogleFiletypes.SHEET)
+  # googleDriveTools.createFile('GDriveTools_Test', dest, 'slide', GoogleFiletypes.SLIDE)
+
+  sourceDocumentPath = 'Testfolder/test'
+
+  googleDriveTools.moveDocument('GDriveTools_Test', sourceDocumentPath, 'bla')
+
 
 def getCredentials():
   creds = None
