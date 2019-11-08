@@ -62,6 +62,9 @@ class GDriveTools():
     sharedDriveId = self.__getIdOfSharedDrive(sharedDriveName)
     directoriesFromClipboard = self.__getAllDirectoriesFromClipboard(sharedDriveId)
 
+    print(directoriesFromClipboard)
+    return
+
     # If the target directory list is empty, the document should be created
     # inside the root directory.
     if len(destinationList) == 0:
@@ -125,28 +128,45 @@ class GDriveTools():
     return idForDrive
 
   def __getAllDirectoriesFromClipboard(self, clipboardId):
-    files = self.__googleDriveClient \
-      .files() \
-      .list(
-        q="mimeType = 'application/vnd.google-apps.folder' and not trashed",
-        corpora='drive',
-        supportsAllDrives=True,
-        driveId=clipboardId,
-        includeItemsFromAllDrives=True,
-        fields='files(id, name, mimeType, parents)').execute()
+    files = []
+    if clipboardId:
+      files = self.__googleDriveClient \
+        .files() \
+        .list(
+          q="mimeType = 'application/vnd.google-apps.folder' and not trashed",
+          corpora='drive',
+          supportsAllDrives=True,
+          driveId=clipboardId,
+          includeItemsFromAllDrives=True,
+          fields='files(id, name, mimeType, parents)').execute()
+
+    else:
+      files = self.__googleDriveClient \
+        .files() \
+        .list(
+          q="mimeType = 'application/vnd.google-apps.folder' and not trashed",
+          fields='files(id, name, mimeType, parents)').execute()
 
     return files['files']
 
   def __getAllFilesOfDrive(self, driveId):
-    files = self.__googleDriveClient \
-      .files() \
-      .list(
-        q="not trashed",
-        corpora='drive',
-        supportsAllDrives=True,
-        driveId=driveId,
-        includeItemsFromAllDrives=True,
-        fields='files(id, name, mimeType, parents)').execute()
+    files = []
+
+    if driveId:
+      files = self.__googleDriveClient \
+        .files() \
+        .list(
+          q="not trashed",
+          corpora='drive',
+          supportsAllDrives=True,
+          driveId=driveId,
+          includeItemsFromAllDrives=True,
+          fields='files(id, name, mimeType, parents)').execute()
+
+    else:
+        files = self.__googleDriveClient \
+        .files() \
+        .list(q="not trashed", fields='files(id, name, mimeType, parents)').execute()
 
     return files['files']
 
@@ -162,14 +182,14 @@ class GDriveTools():
 
     return directories, files
 
-  def __buildDirectoryListForPath(self, directoryList, targetPath, sharedDriveId):
+  def __buildDirectoryListForPath(self, directoryList, targetPath, rootParentId):
     dirTree = []
     # Search the target in the root directory.
     # TODO: This should not actually be necessary here.
     # See, if this can be refactored.
     startDir = None
     for curDir in directoryList:
-      if (curDir['name'] == targetPath[0] and sharedDriveId in curDir['parents']):
+      if (curDir['name'] == targetPath[0] and rootParentId in curDir['parents']):
         startDir = curDir
         break
 
