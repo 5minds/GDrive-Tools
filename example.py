@@ -13,19 +13,20 @@ SCOPES = ['https://www.googleapis.com/auth/documents',
 
 def main():
   creds = getCredentials()
+
+  # Create the google drive tools client with your local credentials.
   googleDriveTools = gt.GDriveTools(creds)
 
-  clipboardId = '0ALjbkdGck0cgUk9PVA'
-  dest = ''
+  # Create a new Google Document named 'sample' at the path 'simple/test'
+  sharedDriveName = 'GDriveTools_Test'
+  destinationPath = 'simple/test'
+  docname = 'sample'
+  googleDriveTools.createFile(sharedDriveName, destinationPath, docname, GoogleFiletypes.DOCUMENT)
 
-  googleDriveTools.createFile('GDriveTools_Test', dest, 'document', GoogleFiletypes.DOCUMENT)
-  googleDriveTools.createFile('GDriveTools_Test', dest, 'sheet', GoogleFiletypes.SHEET)
-  googleDriveTools.createFile('GDriveTools_Test', dest, 'slide', GoogleFiletypes.SLIDE)
-
-  # sourceDocumentPath = 'Testfolder/test'
-
-  # googleDriveTools.moveDocument('GDriveTools_Test', sourceDocumentPath, 'bla')
-
+  # Move the created document to the 'new/test' directory.
+  sourcePath = 'simple/test/sample'
+  destinationPath = 'new/test'
+  googleDriveTools.moveDocument(sharedDriveName, sourcePath, destinationPath)
 
 def getCredentials():
   creds = None
