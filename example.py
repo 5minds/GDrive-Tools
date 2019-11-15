@@ -1,57 +1,44 @@
-import pickle
-import os.path
-from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
 from time import sleep
 
 import src.gdrive_tools as gt
 from src.google_filetypes import GoogleFiletypes
+from src.google_auth import GoogleAuth
 
 # If modifying these scopes, delete the file token.pickle.
-SCOPES = ['https://www.googleapis.com/auth/documents',
-'https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/presentations']
+SCOPES = ['https://www.googleapis.com/auth/documents', 'https://www.googleapis.com/auth/drive']
 
 def main():
-  creds = getCredentials()
+  auth = GoogleAuth(SCOPES)
+  creds = auth.createCredentials()
 
   # Create the google drive tools client with your local credentials.
   googleDriveTools = gt.GDriveTools(creds)
 
   # Create a new Google Document named 'sample' at the path 'simple/test'
-  destinationPath = 'GDriveTools_Test/simple/test'
+  destinationPath = 'simple/test'
   docname = 'sample'
   googleDriveTools.createFile(destinationPath, docname, GoogleFiletypes.DOCUMENT)
 
-  # Give Google Drive some time to process the changes
-  sleep(1)
+  input("""\
+There should be a new "simple" folder in your google drive root directory. \
+In this folder, you can find the folder named "test" that contains the created document "sample".
+Hint: If you currently opened google drive in your browser, you may have to refresh the page to see the \
+changes.
+
+Press any key to continue...
+""")
 
   # Move the created document to the 'new/test' directory.
-  sourcePath = 'GDriveTools_Test/simple/test/sample'
+  sourcePath = 'simple/test/sample'
   destinationPath = 'new/test'
   googleDriveTools.moveDocument(sourcePath, destinationPath)
 
-def getCredentials():
-  creds = None
-  # The file token.pickle stores the user's access and refresh tokens, and is
-  # created automatically when the authorization flow completes for the first
-  # time.
-  if os.path.exists('token.pickle'):
-      with open('token.pickle', 'rb') as token:
-          creds = pickle.load(token)
-  # If there are no (valid) credentials available, let the user log in.
-  if not creds or not creds.valid:
-      if creds and creds.expired and creds.refresh_token:
-          creds.refresh(Request())
-      else:
-          flow = InstalledAppFlow.from_client_secrets_file(
-              'credentials.json', SCOPES)
-          creds = flow.run_local_server(port=0)
-      # Save the credentials for the next run
-      with open('token.pickle', 'wb') as token:
-          pickle.dump(creds, token)
-
-  return creds
+  print("""\
+Now you should also find a "new" folder in your google drive root directory. \
+This folder also contains a "test" folder which now contains the document \
+named "sample".
+Hint: You may also have to refresh your browser. \
+""")
 
 if __name__ == '__main__':
   main()
