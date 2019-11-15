@@ -62,7 +62,7 @@ parameters are needed:
 ### Move a Document
 
 A document can be moved from one directory to another, either inside your
-local or a shared drive.
+local or a shared drive, using the `moveDocument()` method.
 
 The following parameters are needed.
 
