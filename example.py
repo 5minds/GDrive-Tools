@@ -15,17 +15,30 @@ def main():
   googleDriveTools = gt.GDriveTools(creds)
 
   # Create a new Google Document named 'sample' at the path 'simple/test'
-  destinationPath = 'GDriveTools_Test/simple/test'
+  destinationPath = 'simple/test'
   docname = 'sample'
   googleDriveTools.createFile(destinationPath, docname, GoogleFiletypes.DOCUMENT)
 
-  # Give Google Drive some time to process the changes
-  sleep(1)
+  input("""\
+There should be a new "simple" folder in your google drive root directory. \
+In this folder, you can find the folder named "test" that contains the created document "sample".
+Hint: If you currently opened google drive in your browser, you may have to refresh the page to see the \
+changes.
+
+Press any key to continue...
+""")
 
   # Move the created document to the 'new/test' directory.
-  sourcePath = 'GDriveTools_Test/simple/test/sample'
+  sourcePath = 'simple/test/sample'
   destinationPath = 'new/test'
   googleDriveTools.moveDocument(sourcePath, destinationPath)
+
+  print("""\
+Now you should also find a "new" folder in your google drive root directory. \
+This folder also contains a "test" folder which now contains the document \
+named "sample".
+Hint: You may also have to refresh your browser. \
+""")
 
 if __name__ == '__main__':
   main()
