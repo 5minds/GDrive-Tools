@@ -50,7 +50,6 @@ class GDriveTools():
       document.
   """
   def createFile(self,
-    sharedDriveName: str,
     destination: str,
     documentName: str,
     fileType: GoogleFiletypes):
@@ -59,11 +58,11 @@ class GDriveTools():
     destinationList = self.__getPathListForPath(destination)
 
     # Try to obtain the id of the drive with the given name
-    sharedDriveId = self.__getIdOfSharedDrive(sharedDriveName)
-    directoriesFromClipboard = self.__getAllDirectoriesFromClipboard(sharedDriveId)
+    sharedDriveId = self.__getIdOfSharedDrive(destinationList[0]) if len(destinationList) > 0 else ''
+    if sharedDriveId:
+      destinationList = destinationList[1:]
 
-    print(directoriesFromClipboard)
-    return
+    directoriesFromClipboard = self.__getAllDirectoriesFromClipboard(sharedDriveId)
 
     # If the target directory list is empty, the document should be created
     # inside the root directory.
@@ -82,7 +81,7 @@ class GDriveTools():
     # a newly created document to a parent.
     self.__moveDocumentToDirectory(createdDocumentId, targetDirectoryId)
 
-  def moveDocument(self, sharedDriveName: str, sourcePath: str, targetPath: str):
+  def moveDocument(self, sourcePath: str, targetPath: str):
     """
     Moves a document from the given source- to a destination path.
 
@@ -93,39 +92,46 @@ class GDriveTools():
     """
     sourcePathAsList, sourceFileName = self.__getPathAndFilename(sourcePath)
     targetDirectoryList = self.__getPathListForPath(targetPath)
-    sharedDriveId = self.__getIdOfSharedDrive(sharedDriveName)
 
-    everythingFromDrive = self.__getAllFilesOfDrive(sharedDriveId)
+    driveId = self.__getIdOfSharedDrive(sourcePathAsList[0]) if len(targetDirectoryList) > 0 else ''
+    useSharedDrive = driveId != ''
+
+    if useSharedDrive:
+      sourcePathAsList = sourcePathAsList[1:]
+    else:
+      driveId = self.__getDriveRootId()
+
+    everythingFromDrive = self.__getAllFilesOfDrive(driveId, useSharedDrive)
     directories, files = self.__orderDirectoriesAndFiles(everythingFromDrive)
 
-    parentDirectoryId = self.__getParentDirectoryId(directories, sourcePathAsList, sharedDriveId)
+    parentDirectoryId = self.__getParentDirectoryId(directories, sourcePathAsList, driveId)
     documentId = self.__findDocumentIdWithParentId(files, sourceFileName, parentDirectoryId)
 
-    if not documentId:
-      raise ValueError(f'Document "{sourcePath}" not found!')
+    # if not documentId:
+    #  raise ValueError(f'Document "{sourcePath}" not found!')
 
-    targetDirectoryTree = self.__buildDirectoryListForPath(directories, targetDirectoryList, sharedDriveId)
-    targetDirectoryId = self.__searchForTargetDirectory(targetDirectoryTree, sharedDriveId, targetDirectoryList)
+    targetDirectoryTree = self.__buildDirectoryListForPath(directories, targetDirectoryList, driveId)
+    targetDirectoryId = self.__searchForTargetDirectory(targetDirectoryTree, driveId, targetDirectoryList)
 
     self.__moveDocumentToDirectory(documentId, targetDirectoryId)
 
   def __getIdOfSharedDrive(self, driveName):
+    idForDrive = ''
     drives = self.__googleDriveClient.drives()\
       .list(fields='drives')\
       .execute()\
       .get('drives')
-
-    idForDrive = ""
 
     for currentDrive in drives:
       if currentDrive['name'] == driveName:
         idForDrive = currentDrive['id']
         break
 
-    if not idForDrive:
-      raise ValueError(f'Could not find a drive with name "{driveName}"')
-
     return idForDrive
+
+  def __getDriveRootId(self):
+    rootDrive = self.__googleDriveClient.files().get(fileId='root', fields="id").execute()
+    return rootDrive.get('id')
 
   def __getAllDirectoriesFromClipboard(self, clipboardId):
     files = []
@@ -149,10 +155,10 @@ class GDriveTools():
 
     return files['files']
 
-  def __getAllFilesOfDrive(self, driveId):
+  def __getAllFilesOfDrive(self, driveId, useSharedDrive):
     files = []
 
-    if driveId:
+    if useSharedDrive:
       files = self.__googleDriveClient \
         .files() \
         .list(
@@ -214,8 +220,8 @@ class GDriveTools():
 
     return dirTree
 
-  def __searchForTargetDirectory(self, directoryTree, sharedDriveId, destinationPath):
-    targetDirectoryId = directoryTree[-1].get('id') if len(directoryTree) > 0 else sharedDriveId
+  def __searchForTargetDirectory(self, directoryTree, driveId, destinationPath):
+    targetDirectoryId = directoryTree[-1].get('id') if len(directoryTree) > 0 else driveId
 
     if len(directoryTree) < len(destinationPath):
       existingDirectoryNames = [curDir['name'] for curDir in directoryTree]
@@ -233,10 +239,11 @@ class GDriveTools():
     return lastDirectoryId
 
   def __createDirectory(self, directoryName, parentId):
+    parents = [parentId] if parentId else []
     metadata = {
       'name': directoryName,
       'mimeType': 'application/vnd.google-apps.folder',
-      'parents': [parentId]
+      'parents': parents
     }
 
     createdDirectory = self.__googleDriveClient.files().create(body=metadata, supportsTeamDrives=True, fields='id').execute()
@@ -301,14 +308,14 @@ class GDriveTools():
 
     return documentId
 
-  def __getParentDirectoryId(self, directories, path, sharedDriveId):
+  def __getParentDirectoryId(self, directories, path, driveId):
     parentDirectoryId = ''
     if len(path) == 0:
-      return sharedDriveId
+      return driveId
 
     else:
-      srcDirectoryTree = self.__buildDirectoryListForPath(directories, path, sharedDriveId)
-      parentDirectoryId = srcDirectoryTree[-1].get('id')
+      srcDirectoryTree = self.__buildDirectoryListForPath(directories, path, driveId)
+      parentDirectoryId = srcDirectoryTree[-1].get('id') if len(srcDirectoryTree) > 0 else ''
 
     return parentDirectoryId
 
