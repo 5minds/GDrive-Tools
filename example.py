@@ -3,6 +3,7 @@ import os.path
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+from time import sleep
 
 import src.gdrive_tools as gt
 from src.google_filetypes import GoogleFiletypes
@@ -18,15 +19,17 @@ def main():
   googleDriveTools = gt.GDriveTools(creds)
 
   # Create a new Google Document named 'sample' at the path 'simple/test'
-  sharedDriveName = 'GDriveTools_Test'
-  destinationPath = 'simple/test'
+  destinationPath = 'GDriveTools_Test/simple/test'
   docname = 'sample'
-  googleDriveTools.createFile(sharedDriveName, destinationPath, docname, GoogleFiletypes.DOCUMENT)
+  googleDriveTools.createFile(destinationPath, docname, GoogleFiletypes.DOCUMENT)
+
+  # Give Google Drive some time to process the changes
+  sleep(1)
 
   # Move the created document to the 'new/test' directory.
-  sourcePath = 'simple/test/sample'
+  sourcePath = 'GDriveTools_Test/simple/test/sample'
   destinationPath = 'new/test'
-  googleDriveTools.moveDocument(sharedDriveName, sourcePath, destinationPath)
+  googleDriveTools.moveDocument(sourcePath, destinationPath)
 
 def getCredentials():
   creds = None
@@ -47,9 +50,6 @@ def getCredentials():
       # Save the credentials for the next run
       with open('token.pickle', 'wb') as token:
           pickle.dump(creds, token)
-
-  docService = build('docs', 'v1', credentials=creds)
-  drvService = build('drive', 'v3', credentials=creds)
 
   return creds
 
