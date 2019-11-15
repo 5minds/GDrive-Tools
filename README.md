@@ -22,13 +22,19 @@ credentials. This can be archived like so:
 
 ```Python
 import src.gdrive_tools as gt
+import src.google_filetypes
+import src.google_auth as ga
 
-# Read your Credentials. This is documented on the google drive api.
-credentials = get_credentials()
+# Create a google auth object which wraps the authentication on the google
+# drive api.
+auth = ga.GoogleAuth(SCOPES)
+credentials = auth.createCredentials()
 
 # Create the api client and pass the read credentials.
 googleDriveToolsClient = gt.GoogleDriveTools(credentials)
 ```
+
+If the client object was created, you can use the offered methods.
 
 ### Create a new Document
 
@@ -41,10 +47,9 @@ _Directories which are placed in the drives trash folder will be ignored._
 The following
 parameters are needed:
 
-* `sharedDriveName(str)`: Name of the shared drive, where the document
-  should be created in.
-* `destination(str)`: Full path, where the document should be moved to. The root
-  is equivalent to the root directory of the shared drive with the given name.
+* `destination(str)`: Full path, where the document should be moved to.
+  The root is either the shared drive with the given name or just the root directory of your local drive (if you want to create a new document on
+  your local drive).
   All directories are delimited by a simple slash (`/`).
 * `documentName(str)`: Name of the Document that should be created.
 * `fileType(int)`: Type of the document. Currently, the following types are
@@ -53,6 +58,20 @@ parameters are needed:
     * `GoogleFiletypes.SHEET`: Google Sheets file
     * `GoogleFiletypes.SLIDE`: Google Slides file
 
+
+### Move a Document
+
+A document can be moved from one directory to another, either inside your
+local or a shared drive.
+
+The following parameters are needed.
+
+* `sourcePath(str)`: The full source path of the document that should be  moved.
+  The root is either the shared drive with the given name or just the root directory of your local drive (if you want to move a document on
+  your local drive).
+* `destinationPath(str)`: The target path where the document should be
+  moved to. The root point of this path points to the root directory of the
+  shared drive with the name, defined by the `sourcePath` parameter.
 
 ## Example
 
