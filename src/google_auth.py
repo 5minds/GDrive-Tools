@@ -11,6 +11,7 @@ class GoogleAuth():
 
   def createCredentials(self):
     creds = None
+
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
