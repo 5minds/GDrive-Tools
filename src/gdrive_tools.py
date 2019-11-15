@@ -107,8 +107,8 @@ class GDriveTools():
     parentDirectoryId = self.__getParentDirectoryId(directories, sourcePathAsList, driveId)
     documentId = self.__findDocumentIdWithParentId(files, sourceFileName, parentDirectoryId)
 
-    # if not documentId:
-    #  raise ValueError(f'Document "{sourcePath}" not found!')
+    if not documentId:
+      raise ValueError(f'Document "{sourcePath}" not found!')
 
     targetDirectoryTree = self.__buildDirectoryListForPath(directories, targetDirectoryList, driveId)
     targetDirectoryId = self.__searchForTargetDirectory(targetDirectoryTree, driveId, targetDirectoryList)
