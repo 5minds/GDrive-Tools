@@ -5,8 +5,7 @@ from src.google_filetypes import GoogleFiletypes
 from src.google_auth import GoogleAuth
 
 # If modifying these scopes, delete the file token.pickle.
-SCOPES = ['https://www.googleapis.com/auth/documents',
-'https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/presentations']
+SCOPES = ['https://www.googleapis.com/auth/documents', 'https://www.googleapis.com/auth/drive']
 
 def main():
   auth = GoogleAuth(SCOPES)
