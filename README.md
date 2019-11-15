@@ -54,19 +54,38 @@ parameters are needed:
     * `GoogleFiletypes.SLIDE`: Google Slides file
 
 
-Example:
+## Example
 
-```python
-sharedDriveName = 'MySharedDrive'
-path = 'target/directory'
-documentName = 'documentToCreate'
+You can test the library using the given `example.py` script.
 
-googleDriveToolsClient\
-  .createFile(sharedDriveName,
-    path,
-    documentName,
-    GoogleFiletypes.DOCUMENT)
-```
+### Enable the Google Drive and Docs Api and Download the Client Configuration
 
+In order the script to work you need to have a valid `credentials.json` file,
+which contains your google drive credentials.
+For the example, you only need to activate the Google Drive and Google Sheets
+api with your account.
 
+1. Navigate to https://developers.google.com/drive/api/v3/quickstart/python
+2. Click on the _Enable the Drive Api_ Button
+3. Navigate to https://developers.google.com/docs/api/quickstart/python
+4. Click on the _Enable the Docs Api_ Button
+5. Click on _Download Client Configuration_ Button
+6. Move the downloaded `credentials.json` file to this directory.
 
+### Install the Dependencies
+
+There are two ways how to install the dependencies.
+
+#### Using Pip
+
+If you use pip natively, you can simply install the dependencies from
+the `requirements.txt` file using `pip install -r requirements.txt`.
+
+#### Using Pipenv
+
+This project's dependencies can also be managed with Pipenv. To use Pipenv, make
+sure its installed on your system (if not it can be done so by executing `pip install pipenv`).
+Then you can install the dependencies using `pipenv install`.
+
+To run the example script in the virtual environnement, created by pipenv, you can
+run `pipenv run python example.py`.
