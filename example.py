@@ -19,7 +19,6 @@ def main():
   googleDriveTools = gt.GDriveTools(creds)
 
   # Create a new Google Document named 'sample' at the path 'simple/test'
-  sharedDriveName = 'GDriveTools_Test'
   destinationPath = 'GDriveTools_Test/simple/test'
   docname = 'sample'
   googleDriveTools.createFile(destinationPath, docname, GoogleFiletypes.DOCUMENT)
@@ -51,9 +50,6 @@ def getCredentials():
       # Save the credentials for the next run
       with open('token.pickle', 'wb') as token:
           pickle.dump(creds, token)
-
-  docService = build('docs', 'v1', credentials=creds)
-  drvService = build('drive', 'v3', credentials=creds)
 
   return creds
 
