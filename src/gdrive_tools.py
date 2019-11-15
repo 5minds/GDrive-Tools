@@ -93,27 +93,36 @@ class GDriveTools():
     sourcePathAsList, sourceFileName = self.__getPathAndFilename(sourcePath)
     targetDirectoryList = self.__getPathListForPath(targetPath)
 
-    driveId = self.__getIdOfSharedDrive(sourcePathAsList[0]) if len(targetDirectoryList) > 0 else ''
-    useSharedDrive = driveId != ''
+    sourceDriveId, isSharedDrive  = self.__getDriveId(sourcePathAsList[0]) if len(sourcePathAsList) > 0 else ''
 
-    if useSharedDrive:
+    if isSharedDrive:
       sourcePathAsList = sourcePathAsList[1:]
-    else:
-      driveId = self.__getDriveRootId()
 
-    everythingFromDrive = self.__getAllFilesOfDrive(driveId, useSharedDrive)
+    everythingFromDrive = self.__getAllFilesOfDrive(sourceDriveId, isSharedDrive)
     directories, files = self.__orderDirectoriesAndFiles(everythingFromDrive)
 
-    parentDirectoryId = self.__getParentDirectoryId(directories, sourcePathAsList, driveId)
+    parentDirectoryId = self.__getParentDirectoryId(directories, sourcePathAsList, sourceDriveId)
     documentId = self.__findDocumentIdWithParentId(files, sourceFileName, parentDirectoryId)
 
     if not documentId:
       raise ValueError(f'Document "{sourcePath}" not found!')
 
-    targetDirectoryTree = self.__buildDirectoryListForPath(directories, targetDirectoryList, driveId)
-    targetDirectoryId = self.__searchForTargetDirectory(targetDirectoryTree, driveId, targetDirectoryList)
+    targetDirectoryTree = self.__buildDirectoryListForPath(directories, targetDirectoryList, sourceDriveId)
+    targetDirectoryId = self.__searchForTargetDirectory(targetDirectoryTree, sourceDriveId, targetDirectoryList)
 
     self.__moveDocumentToDirectory(documentId, targetDirectoryId)
+
+  def __getDriveId(self, driveName):
+    driveId = self.__getIdOfSharedDrive(driveName)
+
+    # If the drive id was not found in the list of shared drives, the id of the local
+    # drive will be returned.
+    isSharedDrive = driveId != ''
+    if not isSharedDrive:
+      driveId = self.__getDriveRootId()
+
+    return driveId, isSharedDrive
+
 
   def __getIdOfSharedDrive(self, driveName):
     idForDrive = ''
