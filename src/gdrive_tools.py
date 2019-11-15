@@ -93,22 +93,22 @@ class GDriveTools():
     sourcePathAsList, sourceFileName = self.__getPathAndFilename(sourcePath)
     targetDirectoryList = self.__getPathListForPath(targetPath)
 
-    sourceDriveId, isSharedDrive  = self.__getDriveId(sourcePathAsList[0]) if len(sourcePathAsList) > 0 else ''
+    driveId, isSharedDrive  = self.__getDriveId(sourcePathAsList[0]) if len(sourcePathAsList) > 0 else ''
 
     if isSharedDrive:
       sourcePathAsList = sourcePathAsList[1:]
 
-    everythingFromDrive = self.__getAllFilesOfDrive(sourceDriveId, isSharedDrive)
+    everythingFromDrive = self.__getAllFilesOfDrive(driveId, isSharedDrive)
     directories, files = self.__orderDirectoriesAndFiles(everythingFromDrive)
 
-    parentDirectoryId = self.__getParentDirectoryId(directories, sourcePathAsList, sourceDriveId)
+    parentDirectoryId = self.__getParentDirectoryId(directories, sourcePathAsList, driveId)
     documentId = self.__findDocumentIdWithParentId(files, sourceFileName, parentDirectoryId)
 
     if not documentId:
       raise ValueError(f'Document "{sourcePath}" not found!')
 
-    targetDirectoryTree = self.__buildDirectoryListForPath(directories, targetDirectoryList, sourceDriveId)
-    targetDirectoryId = self.__searchForTargetDirectory(targetDirectoryTree, sourceDriveId, targetDirectoryList)
+    targetDirectoryTree = self.__buildDirectoryListForPath(directories, targetDirectoryList, driveId)
+    targetDirectoryId = self.__searchForTargetDirectory(targetDirectoryTree, driveId, targetDirectoryList)
 
     self.__moveDocumentToDirectory(documentId, targetDirectoryId)
 
