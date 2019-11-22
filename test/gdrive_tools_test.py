@@ -1,12 +1,9 @@
-import pickle
-import os.path
-from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
 import pytest
+import time
 
-from src.gdrive_tools import GDriveTools
-from src.gdrive_tools import GoogleFiletypes
+from gdrive_tools.gdrive_tools import GDriveTools
+from gdrive_tools.google_filetypes import GoogleFiletypes
+from gdrive_tools.google_auth import GoogleAuth
 
 
 # If modifying these scopes, delete the file token.pickle.
@@ -14,40 +11,104 @@ SCOPES = ['https://www.googleapis.com/auth/documents',
 'https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/presentations']
 
 @pytest.fixture(scope='session')
-def credentials():
-  creds = None
-  # The file token.pickle stores the user's access and refresh tokens, and is
-  # created automatically when the authorization flow completes for the first
-  # time.
-  if os.path.exists('token.pickle'):
-      with open('token.pickle', 'rb') as token:
-          creds = pickle.load(token)
-  # If there are no (valid) credentials available, let the user log in.
-  if not creds or not creds.valid:
-      if creds and creds.expired and creds.refresh_token:
-          creds.refresh(Request())
-      else:
-          flow = InstalledAppFlow.from_client_secrets_file(
-              'credentials.json', SCOPES)
-          creds = flow.run_local_server(port=0)
-      # Save the credentials for the next run
-      with open('token.pickle', 'wb') as token:
-          pickle.dump(creds, token)
+def gtoolsClient():
+  auth = GoogleAuth(SCOPES)
+  creds = auth.createCredentials()
+  client = GDriveTools(creds)
 
-  docService = build('docs', 'v1', credentials=creds)
-  drvService = build('drive', 'v3', credentials=creds)
-
-  return creds
+  return client
 
 @pytest.fixture(scope='session')
-def gdriveToolsClient(credentials):
-  return GDriveTools(credentials)
+def allDirectoriesFromDrive(gtoolsClient: GDriveTools):
+ files = gtoolsClient.googleDriveClient \
+        .files() \
+        .list(
+          q="mimeType = 'application/vnd.google-apps.folder' and not trashed",
+          fields='files(id, name, mimeType, parents)').execute()
 
-def test_create_simple_file(gdriveToolsClient):
-  """
-  Tests if its possible to create a simple file in the root directory of the
-  given Google Drive user.
-  """
-  driveName = 'GDriveTools_Test'
-  outfileName = 'testdocument'
-  gdriveToolsClient.createFile(driveName, '', outfileName, GoogleFiletypes.DOCUMENT)
+ return files['files']
+
+def test_create_document(gtoolsClient: GDriveTools):
+  # Create a simple document using the GDrive tools
+  destPath = 'new/document'
+  docName = 'testdoc'
+  destPathAsList = __getPathListForPath(destPath)
+  docid = gtoolsClient.createFile(destPath, docName, GoogleFiletypes.DOCUMENT)
+
+  # Give Google Drive some time to process these changes.
+  time.sleep(0.5)
+
+  # Test, if the document was created
+  directories, files = __getAllDirectoriesAndFilesFromDrive(gtoolsClient)
+  rootId = __getDriveRootId(gtoolsClient)
+  dirTree = __buildDirectoryListForPath(directories, destPathAsList, rootId)
+
+  createdDocumentParentId = gtoolsClient.googleDriveClient.files().get(fileId=docid, fields='parents').execute().get('parents')[0]
+
+  # Check if the document was created in the correct subdirectory
+  assert createdDocumentParentId == dirTree[-1].get('id'), 'The Created Document was not in the correct subdirectory'
+
+  # Check, if the directory tree matches the input path:
+  for curDirectory, curDirTreeEntry in zip(destPathAsList, dirTree):
+    assert curDirectory == curDirTreeEntry.get('name')
+
+def __getAllDirectoriesAndFilesFromDrive(gtoolsClient: GDriveTools):
+   files = gtoolsClient.googleDriveClient \
+        .files() \
+        .list(q="not trashed", fields='files(id, name, mimeType, parents)').execute()
+
+   return __orderDirectoriesAndFiles(files['files'])
+
+
+def __orderDirectoriesAndFiles(filesToOrder):
+    directories = []
+    files = []
+
+    for currentFile in filesToOrder:
+      if currentFile['mimeType'] == 'application/vnd.google-apps.folder':
+        directories.append(currentFile)
+      else:
+        files.append(currentFile)
+
+    return directories, files
+
+def __buildDirectoryListForPath(directoryList, targetPath, rootParentId):
+    dirTree = []
+    # Search the target in the root directory.
+    # TODO: This should not actually be necessary here.
+    # See, if this can be refactored.
+    startDir = None
+    for curDir in directoryList:
+      if (curDir['name'] == targetPath[0] and rootParentId in curDir['parents']):
+        startDir = curDir
+        break
+
+    # If the first directory could not be found,
+    # we can return an empty list here since all directories
+    # have to be created.
+    if startDir is None:
+      return []
+
+    dirTree.append(startDir)
+    lastId = startDir['id']
+
+    # Recursively build the directory tree, containing all ids:
+    for curTargetDir in targetPath:
+
+      # Search for the directory whose parent is the last directory
+      for cur in directoryList:
+        if cur['name'] == curTargetDir and lastId in cur['parents']:
+          lastId = cur['id']
+          dirTree.append(cur)
+          break
+
+    return dirTree
+
+
+def __getDriveRootId(gdriveToolsClient: GDriveTools):
+  rootDrive = gdriveToolsClient.googleDriveClient.files().get(fileId='root', fields="id").execute()
+  return rootDrive.get('id')
+
+def __getPathListForPath(sourcePath):
+  pathList = sourcePath.split('/')
+  return pathList if pathList[0] != '' else pathList[1:]
