@@ -112,6 +112,22 @@ class GDriveTools():
 
     self.__moveDocumentToDirectory(documentId, targetDirectoryId)
 
+  @property
+  def googleDriveClient(self):
+    return self.__googleDriveClient
+
+  @property
+  def googleDocsClient(self):
+    return self.__googleDocsClient
+
+  @property
+  def googleSheetsClient(self):
+    return self.__googleSheetsClient
+
+  @property
+  def googleSlidesClient(self):
+    return self.__googleSlidesClient
+
   def __getDriveId(self, driveName):
     driveId = self.__getIdOfSharedDrive(driveName)
 
