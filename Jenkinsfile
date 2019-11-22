@@ -1,6 +1,6 @@
 #!/usr/bin/env groovy
 
-@Library('jenkins_shared-libraries@v1.1.0') _
+@Library('Solutions.JenkinsLibraries@v1.0.0') _
 
 def cleanup_workspace() {
   cleanWs()
