@@ -21,9 +21,9 @@ Firstly, you have to create a library client which only needs your
 credentials. This can be archived like so:
 
 ```Python
-import src.gdrive_tools as gt
-import src.google_filetypes
-import src.google_auth as ga
+import gdrive_tools.gdrive_tools as gt
+import gdrive_tools.google_auth as ga
+from gdrive_tools.google_filetypes import GoogleFiletypes
 
 SCOPES = [
   'https://www.googleapis.com/auth/drive',
