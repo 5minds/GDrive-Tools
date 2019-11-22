@@ -1,14 +1,14 @@
 from time import sleep
 
 import gdrive_tools.gdrive_tools as gt
+import gdrive_tools.google_auth as ga
 from gdrive_tools.google_filetypes import GoogleFiletypes
-from gdrive_tools.google_auth import GoogleAuth
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/documents', 'https://www.googleapis.com/auth/drive']
 
 def main():
-  auth = GoogleAuth(SCOPES)
+  auth = ga.GoogleAuth(SCOPES)
   creds = auth.createCredentials()
 
   # Create the google drive tools client with your local credentials.
