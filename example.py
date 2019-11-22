@@ -1,8 +1,8 @@
 from time import sleep
 
-import src.gdrive_tools as gt
-from src.google_filetypes import GoogleFiletypes
-from src.google_auth import GoogleAuth
+import gdrive_tools.gdrive_tools as gt
+from gdrive_tools.google_filetypes import GoogleFiletypes
+from gdrive_tools.google_auth import GoogleAuth
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/documents', 'https://www.googleapis.com/auth/drive']
