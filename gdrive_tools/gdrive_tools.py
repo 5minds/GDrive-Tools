@@ -81,6 +81,8 @@ class GDriveTools():
     # a newly created document to a parent.
     self.__moveDocumentToDirectory(createdDocumentId, targetDirectoryId)
 
+    return createdDocumentId
+
   def moveDocument(self, sourcePath: str, targetPath: str):
     """
     Moves a document from the given source- to a destination path.
