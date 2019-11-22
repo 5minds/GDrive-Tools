@@ -25,7 +25,12 @@ import src.gdrive_tools as gt
 import src.google_filetypes
 import src.google_auth as ga
 
-SCOPES = ['https://www.googleapis.com/auth/documents', 'https://www.googleapis.com/auth/drive']
+SCOPES = [
+  'https://www.googleapis.com/auth/drive',
+  'https://www.googleapis.com/auth/documents',
+  'https://www.googleapis.com/auth/spreadsheets',
+  'https://www.googleapis.com/auth/presentations'
+  ]
 
 # Create a google auth object which wraps the authentication on the google
 # drive api.
