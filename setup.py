@@ -11,6 +11,7 @@ setuptools.setup(
   author_email="robin.palkovits@5minds.de",
   description="A collection of usefull tools to interact with the google drive/google docs api",
   long_description=read('README.md'),
+  url="https://github.com/5minds/GDrive-Tools",
   packages=setuptools.find_packages(),
   classifiers=[
       "Programming Language :: Python :: 3",
