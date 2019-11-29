@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
   name="gdrive-tools",
-  version="0.0.1",
+  version="v1.0.0",
   author="Robin Palkovits",
   author_email="robin.palkovits@5minds.de",
   description="A collection of usefull tools to interact with the google drive/google docs api",
