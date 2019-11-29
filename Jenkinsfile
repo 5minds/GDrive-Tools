@@ -39,14 +39,14 @@ pipeline {
       }
     }
     stage('publish') {
-      when {
+      /*when {
         branch 'master'
-      }
+      }*/
       steps {
         sh('pipenv install twine')
-        configFileProvider([configFile(fileId: 'pypi_processengine_settings', targetLocation: '.pypirc')]) {
+        configFileProvider([configFile(fileId: 'pypy_fiveminds', targetLocation: '.pypirc')]) {
           sh('pipenv run twine upload --config-file .pypirc dist/* && true')
-      }
+        }
       }
     }
     stage('cleanup') {
