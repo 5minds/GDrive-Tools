@@ -25,7 +25,7 @@ In this folder, you can find the folder named "test" that contains the created d
 Hint: If you currently opened google drive in your browser, you may have to refresh the page to see the \
 changes.
 
-Press any key to continue...
+Press the Return key to continue...
 """)
 
   # Move the created document to the 'new/test' directory.
