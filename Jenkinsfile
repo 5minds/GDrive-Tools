@@ -44,7 +44,7 @@ pipeline {
       }*/
       steps {
         sh('pipenv install twine')
-        configFileProvider([configFile(fileId: 'pypy_fiveminds', targetLocation: '.pypirc')]) {
+        configFileProvider([configFile(fileId: 'pypi_fiveminds_settings', targetLocation: '.pypirc')]) {
           sh('pipenv run twine upload --config-file .pypirc dist/* && true')
         }
       }
