@@ -43,12 +43,10 @@ pipeline {
         branch 'master'
       }
       steps {
-        dir('python') {
-          sh('pipenv install twine')
-          configFileProvider([configFile(fileId: 'pypi_processengine_settings', targetLocation: '.pypirc')]) {
-            sh('pipenv run twine upload --config-file .pypirc dist/* && true')
-          }
-        }
+        sh('pipenv install twine')
+        configFileProvider([configFile(fileId: 'pypi_processengine_settings', targetLocation: '.pypirc')]) {
+          sh('pipenv run twine upload --config-file .pypirc dist/* && true')
+      }
       }
     }
     stage('cleanup') {
