@@ -28,20 +28,14 @@ pipeline {
   stages {
     stage('prepare') {
       steps {
-        dir('python') {
-          sh('python3 --version')
-
-          sh('pipenv install')
-        }
+        sh('python3 --version')
+        sh('pipenv install')
       }
     }
     stage('package') {
       steps {
-        dir('python') {
-          sh('python3 --version')
-
-          sh('python3 setup.py sdist bdist_wheel')
-        }
+        sh('python3 --version')
+        sh('python3 setup.py sdist bdist_wheel')
       }
     }
     stage('publish') {
