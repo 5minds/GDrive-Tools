@@ -39,9 +39,9 @@ pipeline {
       }
     }
     stage('publish') {
-      /*when {
+      when {
         branch 'master'
-      }*/
+      }
       steps {
         sh('pipenv install twine')
         configFileProvider([configFile(fileId: 'pypi_fiveminds_settings', targetLocation: '.pypirc')]) {
