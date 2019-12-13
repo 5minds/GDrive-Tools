@@ -55,9 +55,20 @@ The following
 parameters are needed:
 
 * `destination(str)`: Full path, where the document should be moved to.
-  The root is either the shared drive with the given name or just the root directory of your local drive (if you want to create a new document on
-  your local drive).
   All directories are delimited by a simple slash (`/`).
+  If the document should be created in a shared drive, the name of the shared
+  drive should be provided first. (Its basically seen as the root directory.)
+  Example:
+  ```
+  MySharedDrive/subdirectory/anotherSubdirectory
+  ```
+
+  If you want to create a new document on your local drive, the first
+  entry is also the first sub folder. Example:
+  ```
+  /subdirectory/anotherSubdirectory
+  ```
+
 * `documentName(str)`: Name of the Document that should be created.
 * `fileType(int)`: Type of the document. Currently, the following types are
   supported:
@@ -73,9 +84,21 @@ local or a shared drive, using the `moveDocument()` method.
 
 The following parameters are needed.
 
-* `sourcePath(str)`: The full source path of the document that should be  moved.
-  The root is either the shared drive with the given name or just the root directory of your local drive (if you want to move a document on
-  your local drive).
+* `sourcePath(str)`: The full source path of the document that should be moved.
+  Full path, where the document should be moved to.
+  All directories are delimited by a simple slash (`/`).
+  If the document should be created in a shared drive, the name of the shared
+  drive should be provided first. (Its basically seen as the root directory.)
+  Example:
+  ```
+  MySharedDrive/subdirectory/anotherSubdirectory
+  ```
+
+  If you want to create a new document on your local drive, the first
+  entry is also the first sub folder. Example:
+  ```
+  /subdirectory/anotherSubdirectory
+  ```
 * `destinationPath(str)`: The target path where the document should be
   moved to. The root point of this path points to the root directory of the
   shared drive with the name, defined by the `sourcePath` parameter.
