@@ -66,7 +66,7 @@ parameters are needed:
   If you want to create a new document on your local drive, the first
   entry is also the first sub folder. Example:
   ```
-  /subdirectory/anotherSubdirectory
+  subdirectory/anotherSubdirectory
   ```
 
 * `documentName(str)`: Name of the Document that should be created.
@@ -97,7 +97,7 @@ The following parameters are needed.
   If you want to create a new document on your local drive, the first
   entry is also the first sub folder. Example:
   ```
-  /subdirectory/anotherSubdirectory
+  subdirectory/anotherSubdirectory
   ```
 * `destinationPath(str)`: The target path where the document should be
   moved to. The root point of this path points to the root directory of the
