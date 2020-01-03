@@ -30,8 +30,8 @@ Press the Return key to continue...
 
   # Move the created document to the 'new/test' directory.
   sourcePath = 'simple/test/sample'
-  destinationPath = 'new/test/anothername'
-  googleDriveTools.copyDocument(sourcePath, destinationPath)
+  destinationPath = 'new/test/sample'
+  googleDriveTools.moveDocument(sourcePath, destinationPath)
 
   print("""\
 Now you should also find a "new" folder in your google drive root directory. \
