@@ -90,27 +90,7 @@ class GDriveTools():
       sourcePath(str): The path of the document that should be moved.
       targetPath(str): The path where the document should be moved to.
     """
-    sourcePathAsList, sourceFileName = self.__getPathAndFilename(sourcePath)
-    targetDirectoryList = self.__getPathListForPath(targetPath)
-
-    driveId, isSharedDrive  = self.__getDriveId(sourcePathAsList[0]) if len(sourcePathAsList) > 0 else ''
-
-    if isSharedDrive:
-      sourcePathAsList = sourcePathAsList[1:]
-
-    everythingFromDrive = self.__getAllFilesOfDrive(driveId, isSharedDrive)
-    directories, files = self.__orderDirectoriesAndFiles(everythingFromDrive)
-
-    parentDirectoryId = self.__getParentDirectoryId(directories, sourcePathAsList, driveId)
-    documentId = self.__findDocumentIdWithParentId(files, sourceFileName, parentDirectoryId)
-
-    if not documentId:
-      raise ValueError(f'Document "{sourcePath}" not found!')
-
-    targetDirectoryTree = self.__buildDirectoryListForPath(directories, targetDirectoryList, driveId)
-    targetDirectoryId = self.__searchForTargetDirectory(targetDirectoryTree, driveId, targetDirectoryList)
-
-    self.__moveDocumentToDirectory(documentId, targetDirectoryId)
+    self.__moveDocument(sourcePath, targetPath)
 
   def copyDocument(self, sourcePath: str, targetPath: str):
     """
@@ -120,6 +100,9 @@ class GDriveTools():
       sourcePath(str): A reference to the document which should be copied.
       targetPath(str): The target path where the document should be copied to.
     """
+    self.__moveDocument(sourcePath, targetPath, copy=True)
+
+  def __moveDocument(self, sourcePath, targetPath, copy=False):
     sourcePathAsList, sourceFileName = self.__getPathAndFilename(sourcePath)
     targetDirectoryList = self.__getPathListForPath(targetPath)
 
@@ -132,7 +115,7 @@ class GDriveTools():
     directories, files = self.__orderDirectoriesAndFiles(everythingFromDrive)
 
     parentDirectoryId = self.__getParentDirectoryId(directories, sourcePathAsList, driveId)
-    sourceDocumentId, sourceParents = self.__findDocumentIdWithParentId(files, sourceFileName, parentDirectoryId)
+    sourceDocumentId = self.__findDocumentIdWithParentId(files, sourceFileName, parentDirectoryId)
 
     if not sourceDocumentId:
       raise ValueError(f'Document "{sourcePath}" not found!')
@@ -140,12 +123,15 @@ class GDriveTools():
     targetDirectoryTree = self.__buildDirectoryListForPath(directories, targetDirectoryList, driveId)
     targetDirectoryId = self.__searchForTargetDirectory(targetDirectoryTree, driveId, targetDirectoryList)
 
-    copiedDocumentId = self.__googleDriveClient.files()\
-        .copy(fileId=sourceDocumentId, body={'name': sourceFileName}, fields='id') \
-        .execute()\
-        .get('id')
+    if copy:
+      copiedDocumentId = self.__googleDriveClient.files()\
+          .copy(fileId=sourceDocumentId, body={'name': sourceFileName}, fields='id') \
+          .execute()\
+          .get('id')
 
-    self.__moveDocumentToDirectory(copiedDocumentId, targetDirectoryId)
+      sourceDocumentId = copiedDocumentId
+
+    self.__moveDocumentToDirectory(sourceDocumentId, targetDirectoryId)
 
   def __getDriveId(self, driveName):
     driveId = self.__getIdOfSharedDrive(driveName)
@@ -346,16 +332,14 @@ class GDriveTools():
   @staticmethod
   def __findDocumentIdWithParentId(listOfDocuments, documentName, parentId):
     documentId = ''
-    parentDirectoryIds = []
     for currentDocument in listOfDocuments:
       currentDocumentHasTargetName = currentDocument['name'] == documentName
       currentDocumentHasGivenParent = parentId in currentDocument['parents']
       if currentDocumentHasTargetName and currentDocumentHasGivenParent:
         documentId = currentDocument['id']
-        parentDirectoryIds = currentDocument['parents']
         break
 
-    return documentId, parentDirectoryIds
+    return documentId
 
   @staticmethod
   def __buildDirectoryListForPath(directoryList, targetPath, rootParentId):
