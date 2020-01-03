@@ -86,22 +86,35 @@ The following parameters are needed.
 
 * `sourcePath(str)`: The full source path of the document that should be moved.
   Full path, where the document should be moved to.
-  All directories are delimited by a simple slash (`/`).
+  All directories are delimited by a simple slash (`/`). The last portion
+  describes the name of the moved file.
   If the document should be created in a shared drive, the name of the shared
   drive should be provided first. (Its basically seen as the root directory.)
   Example:
   ```
-  MySharedDrive/subdirectory/anotherSubdirectory
+  MySharedDrive/subdirectory/anotherSubdirectory/targetFilename
   ```
 
   If you want to create a new document on your local drive, the first
   entry is also the first sub folder. Example:
   ```
-  subdirectory/anotherSubdirectory
+  subdirectory/anotherSubdirectory/targetFilename
   ```
 * `destinationPath(str)`: The target path where the document should be
   moved to. The root point of this path points to the root directory of the
   shared drive with the name, defined by the `sourcePath` parameter.
+
+### Copy a Document
+
+Its also possible to copy a document into another directory. This can
+be archived by using the `copyDocument()` - Method.
+
+The following Parameters are required:
+
+* `sourcePath(str)`: The full source path of the document that should be copied.
+  The syntax is equivalent to the syntax of the `moveDocument()` Method.
+* `destinationPath(str)`: The path which defines where the copy of the source
+  document should be created.
 
 ## Example
 

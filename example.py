@@ -30,7 +30,7 @@ Press the Return key to continue...
 
   # Move the created document to the 'new/test' directory.
   sourcePath = 'simple/test/sample'
-  destinationPath = 'new/test'
+  destinationPath = 'new/test/sample'
   googleDriveTools.moveDocument(sourcePath, destinationPath)
 
   print("""\
