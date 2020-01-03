@@ -105,7 +105,6 @@ class GDriveTools():
   def __moveDocument(self, sourcePath, targetPath, copy=False):
     sourcePathAsList, sourceFileName = self.__getPathAndFilename(sourcePath)
     targetPathAsList, targetFileName = self.__getPathAndFilename(targetPath)
-    # targetDirectoryList = self.__getPathListForPath(targetPath)
 
     driveId, isSharedDrive  = self.__getDriveId(sourcePathAsList[0]) if len(sourcePathAsList) > 0 else ''
 
@@ -126,7 +125,8 @@ class GDriveTools():
 
     if copy:
       copiedDocumentId = self.__googleDriveClient.files()\
-          .copy(fileId=sourceDocumentId, body={'name': targetFileName}, fields='id') \
+          .copy(fileId=sourceDocumentId, body={'name': targetFileName}, fields='id',
+                supportsAllDrives=True, supportsTeamDrives=True) \
           .execute()\
           .get('id')
 
