@@ -122,6 +122,19 @@ The following Parameters are required:
 
 The method returns the id of the copied document.
 
+### Fill a Sheet
+
+If you want to fill an drive sheet, its possible with the `fillSheet()` Method.
+Keep in mind that any existing data in the provided sheet will be overwritten.
+
+The following Parameters are required:
+
+* `sheetId(str)`: The Id of the sheet which should be filled.
+* `data(List[dict])` The data which should be inserted into the sheet as a list
+  of JSON - Objects.
+  The Columns are therefore defined by the keys of the given JSON Objects, whereas
+  all JSON Objects in the passed list must have the same keys.
+
 ## Example
 
 You can test the library using the given `example.py` script.
