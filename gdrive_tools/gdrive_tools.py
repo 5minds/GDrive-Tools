@@ -1,3 +1,4 @@
+from typing import List
 from googleapiclient.discovery import build
 
 from .google_filetypes import GoogleFiletypes
@@ -109,6 +110,33 @@ class GDriveTools():
     """
     copiedDocumentId = self.__moveDocument(sourcePath, targetPath, copy=True)
     return copiedDocumentId
+
+  def fill_sheet(self, sheetId: str, data: List[dict], sheetTableName=''):
+    """
+    Fills a sheet with the given data. Keep in mind that any existing Data will be overwritten.
+
+    Args:
+      sheetId(str): The ID of the sheet, which should be filled.
+      data(dict): The data which should be inserted. Each row is represented
+                  as a dictionary, which contains the columns and the associated values.
+    """
+    columns, data = self.__getValueListFromDict(data)
+    a1RangeEnd = self.__convertRangeToA1Notation(len(data) + 1, len(columns))
+    fullA1Range = f"'{sheetTableName}'!A1:{a1RangeEnd}" if sheetTableName else f'A1:{a1RangeEnd}'
+
+    requestBody = {
+      'values': [columns] + data
+    }
+
+    self.__googleSheetsClient \
+      .spreadsheets()\
+      .values()\
+      .update(
+        spreadsheetId=sheetId,
+        range=fullA1Range,
+        valueInputOption='RAW',
+        body=requestBody)\
+      .execute()
 
   def __moveDocument(self, sourcePath, targetPath, copy=False):
     sourcePathAsList, sourceFileName = self.__getPathAndFilename(sourcePath)
@@ -386,3 +414,38 @@ class GDriveTools():
           break
 
     return dirTree
+
+  @staticmethod
+  def __convertRangeToA1Notation(rows, columns):
+    # Algorithm stolen from https://github.com/burnash/gspread/blob/master/gspread/utils.py#L95
+    divider = columns
+    columnLabel = ''
+
+    while divider:
+      divider, remainder = divmod(divider, 26)
+      if remainder == 0:
+        remainder = 26
+        divider -= 1
+      columnLabel += chr(remainder + 64)
+
+    return f'{columnLabel}{rows}'
+
+  @staticmethod
+  def __getValueListFromDict(inputList):
+    values = []
+    # The first column always contains the keys.
+    if not inputList:
+      raise ValueError('No Data was given.')
+
+    columns = list(inputList[0].keys())
+
+    # Iterate over the list of data and append the values to each row.
+    for currentData in inputList:
+      # Iterate over all dict keys and extract the values.
+      rowData = []
+      for currentKey in columns:
+        rowData.append(currentData[currentKey])
+
+      values.append(rowData)
+
+    return columns, values
