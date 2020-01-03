@@ -111,7 +111,7 @@ class GDriveTools():
     copiedDocumentId = self.__moveDocument(sourcePath, targetPath, copy=True)
     return copiedDocumentId
 
-  def fill_sheet(self, sheetId: str, data: List[dict], sheetTableName=''):
+  def fillSheet(self, sheetId: str, data: List[dict], sheetTableName=''):
     """
     Fills a sheet with the given data. Keep in mind that any existing Data will be overwritten.
 
