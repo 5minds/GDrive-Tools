@@ -4,55 +4,53 @@ from .google_filetypes import GoogleFiletypes
 
 class GDriveTools():
 
-  """
-  Creates a new instance of the document creator. The identity is
-  taken from the provided googleDrive and googleDocs client.
-
-  Args:
-    googleDriveClient (any):  Reference to the google drive service, which
-                              should be used.
-
-    googleDocsClient (any): Reference to the google document service, which
-                              should be used.
-  """
   def __init__(self, creds):
+    """
+    Creates a new instance of the document creator. The identity is
+    taken from the provided googleDrive and googleDocs client.
+
+    Args:
+      googleDriveClient (any):  Reference to the google drive service, which
+                              should be used.
+
+      googleDocsClient (any): Reference to the google document service, which
+                              should be used.
+  """
     self.__googleDriveClient = build('drive', 'v3', credentials=creds)
     self.__googleDocsClient = build('docs', 'v1', credentials=creds)
     self.__googleSheetsClient = build('sheets', 'v4', credentials=creds)
     self.__googleSlidesClient = build('slides', 'v1', credentials=creds)
 
-  """
-  Creates a new file at the given path in the team clipboard with the passed
-  id.
-
-  If the given path in the shared clipboard does not exists, the given directories
-  will be created.
-
-  Args:
-    teamClipboardId (str):  The id of the clipboard, where the document should be
-                            created.
-
-    destination (str):      Target, where the new document should be placed.
-
-    documentName (str):     Name of the new document.
-
-    type (int):             Type Identifier which defines the document type that
-                            should be created.
-
-  Todo:
-    * Parse the Destination from any given input string into a list of directories.
-      Currently, it is only supported to provide a list of directories instead of
-      a 'real' path as a string.
-
-    * Support all different google docs types:
-      At the current state, it is only possible to create google text documents.
-      In the final version, it should be possible to create any type of google
-      document.
-  """
   def createFile(self,
-    destination: str,
-    documentName: str,
-    fileType: GoogleFiletypes):
+                 destination: str,
+                 documentName: str,
+                 fileType: GoogleFiletypes):
+    """Creates a new file at the given path in the team clipboard with the passed
+    id.
+
+    If the given path in the shared clipboard does not exists, the given directories
+    will be created.
+
+    Args:
+      teamClipboardId (str):  The id of the clipboard, where the document should be
+                              created.
+
+      destination (str):      Target, where the new document should be placed.
+
+      documentName (str):     Name of the new document.
+
+      type (int):             Type Identifier which defines the document type that
+                              should be created.
+
+    Todo:
+      * Parse the Destination from any given input string into a list of directories.
+        Currently, it is only supported to provide a list of directories instead of
+        a 'real' path as a string.
+
+      * Support all different google docs types:
+        At the current state, it is only possible to create google text documents.
+        In the final version, it should be possible to create any type of google
+        document."""
 
     # Convert the given Path into a List
     destinationList = self.__getPathListForPath(destination)
@@ -181,55 +179,11 @@ class GDriveTools():
           fields='files(id, name, mimeType, parents)').execute()
 
     else:
-        files = self.__googleDriveClient \
+      files = self.__googleDriveClient \
         .files() \
         .list(q="not trashed", fields='files(id, name, mimeType, parents)').execute()
 
     return files['files']
-
-  def __orderDirectoriesAndFiles(self, filesToOrder):
-    directories = []
-    files = []
-
-    for currentFile in filesToOrder:
-      if currentFile['mimeType'] == 'application/vnd.google-apps.folder':
-        directories.append(currentFile)
-      else:
-        files.append(currentFile)
-
-    return directories, files
-
-  def __buildDirectoryListForPath(self, directoryList, targetPath, rootParentId):
-    dirTree = []
-    # Search the target in the root directory.
-    # TODO: This should not actually be necessary here.
-    # See, if this can be refactored.
-    startDir = None
-    for curDir in directoryList:
-      if (curDir['name'] == targetPath[0] and rootParentId in curDir['parents']):
-        startDir = curDir
-        break
-
-    # If the first directory could not be found,
-    # we can return an empty list here since all directories
-    # have to be created.
-    if startDir is None:
-      return []
-
-    dirTree.append(startDir)
-    lastId = startDir['id']
-
-    # Recursively build the directory tree, containing all ids:
-    for curTargetDir in targetPath:
-
-      # Search for the directory whose parent is the last directory
-      for cur in directoryList:
-        if cur['name'] == curTargetDir and lastId in cur['parents']:
-          lastId = cur['id']
-          dirTree.append(cur)
-          break
-
-    return dirTree
 
   def __searchForTargetDirectory(self, directoryTree, driveId, destinationPath):
     targetDirectoryId = directoryTree[-1].get('id') if len(directoryTree) > 0 else driveId
@@ -308,17 +262,6 @@ class GDriveTools():
 
     return presentation.get('presentationId')
 
-  def __findDocumentIdWithParentId(self, listOfDocuments, documentName, parentId):
-    documentId = ''
-    for currentDocument in listOfDocuments:
-      currentDocumentHasTargetName = currentDocument['name'] == documentName
-      currentDocumentHasGivenParent = parentId in currentDocument['parents']
-      if currentDocumentHasTargetName and currentDocumentHasGivenParent:
-        documentId = currentDocument['id']
-        break
-
-    return documentId
-
   def __getParentDirectoryId(self, directories, path, driveId):
     parentDirectoryId = ''
     if len(path) == 0:
@@ -334,14 +277,10 @@ class GDriveTools():
     fetchedDocument = self.__googleDriveClient.files().get(supportsAllDrives=True, fileId=documentIdToMove, fields='parents').execute()
     previous_parents = ",".join(fetchedDocument.get('parents'))
     self.__googleDriveClient.files().update(fileId=documentIdToMove,
-                                  addParents=targetDirectoryId,
-                                  removeParents=previous_parents,
-                                  supportsAllDrives=True,
-                                  fields='id, parents').execute()
-
-  def __getPathListForPath(self, sourcePath):
-    pathList = sourcePath.split('/')
-    return pathList if pathList[0] != '' else pathList[1:]
+                                            addParents=targetDirectoryId,
+                                            removeParents=previous_parents,
+                                            supportsAllDrives=True,
+                                            fields='id, parents').execute()
 
   def __getPathAndFilename(self, pathAsString):
     fullPath = self.__getPathListForPath(pathAsString)
@@ -350,3 +289,66 @@ class GDriveTools():
       return [], fullPath[0]
 
     return fullPath[:-1], fullPath[-1]
+
+  @staticmethod
+  def __getPathListForPath(sourcePath):
+    pathList = sourcePath.split('/')
+    return pathList if pathList[0] != '' else pathList[1:]
+
+  @staticmethod
+  def __orderDirectoriesAndFiles(filesToOrder):
+    directories = []
+    files = []
+
+    for currentFile in filesToOrder:
+      if currentFile['mimeType'] == 'application/vnd.google-apps.folder':
+        directories.append(currentFile)
+      else:
+        files.append(currentFile)
+
+    return directories, files
+
+  @staticmethod
+  def __findDocumentIdWithParentId(listOfDocuments, documentName, parentId):
+    documentId = ''
+    for currentDocument in listOfDocuments:
+      currentDocumentHasTargetName = currentDocument['name'] == documentName
+      currentDocumentHasGivenParent = parentId in currentDocument['parents']
+      if currentDocumentHasTargetName and currentDocumentHasGivenParent:
+        documentId = currentDocument['id']
+        break
+
+    return documentId
+
+  @staticmethod
+  def __buildDirectoryListForPath(directoryList, targetPath, rootParentId):
+    dirTree = []
+    # Search the target in the root directory.
+    # TODO: This should not actually be necessary here.
+    # See, if this can be refactored.
+    startDir = None
+    for curDir in directoryList:
+      if (curDir['name'] == targetPath[0] and rootParentId in curDir['parents']):
+        startDir = curDir
+        break
+
+    # If the first directory could not be found,
+    # we can return an empty list here since all directories
+    # have to be created.
+    if startDir is None:
+      return []
+
+    dirTree.append(startDir)
+    lastId = startDir['id']
+
+    # Recursively build the directory tree, containing all ids:
+    for curTargetDir in targetPath:
+
+      # Search for the directory whose parent is the last directory
+      for cur in directoryList:
+        if cur['name'] == curTargetDir and lastId in cur['parents']:
+          lastId = cur['id']
+          dirTree.append(cur)
+          break
+
+    return dirTree
