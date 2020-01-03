@@ -112,6 +112,41 @@ class GDriveTools():
 
     self.__moveDocumentToDirectory(documentId, targetDirectoryId)
 
+  def copyDocument(self, sourcePath: str, targetPath: str):
+    """
+    Copies a document and pastes it in the given targetPath.
+
+    Args:
+      sourcePath(str): A reference to the document which should be copied.
+      targetPath(str): The target path where the document should be copied to.
+    """
+    sourcePathAsList, sourceFileName = self.__getPathAndFilename(sourcePath)
+    targetDirectoryList = self.__getPathListForPath(targetPath)
+
+    driveId, isSharedDrive  = self.__getDriveId(sourcePathAsList[0]) if len(sourcePathAsList) > 0 else ''
+
+    if isSharedDrive:
+      sourcePathAsList = sourcePathAsList[1:]
+
+    everythingFromDrive = self.__getAllFilesOfDrive(driveId, isSharedDrive)
+    directories, files = self.__orderDirectoriesAndFiles(everythingFromDrive)
+
+    parentDirectoryId = self.__getParentDirectoryId(directories, sourcePathAsList, driveId)
+    sourceDocumentId, sourceParents = self.__findDocumentIdWithParentId(files, sourceFileName, parentDirectoryId)
+
+    if not sourceDocumentId:
+      raise ValueError(f'Document "{sourcePath}" not found!')
+
+    targetDirectoryTree = self.__buildDirectoryListForPath(directories, targetDirectoryList, driveId)
+    targetDirectoryId = self.__searchForTargetDirectory(targetDirectoryTree, driveId, targetDirectoryList)
+
+    copiedDocumentId = self.__googleDriveClient.files()\
+        .copy(fileId=sourceDocumentId, body={'name': sourceFileName}, fields='id') \
+        .execute()\
+        .get('id')
+
+    self.__moveDocumentToDirectory(copiedDocumentId, targetDirectoryId)
+
   def __getDriveId(self, driveName):
     driveId = self.__getIdOfSharedDrive(driveName)
 
@@ -311,14 +346,16 @@ class GDriveTools():
   @staticmethod
   def __findDocumentIdWithParentId(listOfDocuments, documentName, parentId):
     documentId = ''
+    parentDirectoryIds = []
     for currentDocument in listOfDocuments:
       currentDocumentHasTargetName = currentDocument['name'] == documentName
       currentDocumentHasGivenParent = parentId in currentDocument['parents']
       if currentDocumentHasTargetName and currentDocumentHasGivenParent:
         documentId = currentDocument['id']
+        parentDirectoryIds = currentDocument['parents']
         break
 
-    return documentId
+    return documentId, parentDirectoryIds
 
   @staticmethod
   def __buildDirectoryListForPath(directoryList, targetPath, rootParentId):
