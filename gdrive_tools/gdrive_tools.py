@@ -90,7 +90,8 @@ class GDriveTools():
       sourcePath(str): The path of the document that should be moved.
       targetPath(str): The path where the document should be moved to.
     """
-    self.__moveDocument(sourcePath, targetPath)
+    movedDocumentId = self.__moveDocument(sourcePath, targetPath)
+    return movedDocumentId
 
   def copyDocument(self, sourcePath: str, targetPath: str):
     """
@@ -100,7 +101,8 @@ class GDriveTools():
       sourcePath(str): A reference to the document which should be copied.
       targetPath(str): The target path where the document should be copied to.
     """
-    self.__moveDocument(sourcePath, targetPath, copy=True)
+    copiedDocumentId = self.__moveDocument(sourcePath, targetPath, copy=True)
+    return copiedDocumentId
 
   def __moveDocument(self, sourcePath, targetPath, copy=False):
     sourcePathAsList, sourceFileName = self.__getPathAndFilename(sourcePath)
@@ -133,6 +135,8 @@ class GDriveTools():
       sourceDocumentId = copiedDocumentId
 
     self.__moveDocumentToDirectory(sourceDocumentId, targetDirectoryId, targetFileName=targetFileName)
+
+    return sourceDocumentId
 
   def __getDriveId(self, driveName):
     driveId = self.__getIdOfSharedDrive(driveName)
