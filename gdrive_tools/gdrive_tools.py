@@ -4,6 +4,7 @@ from googleapiclient import errors
 
 from .google_filetypes import GoogleFiletypes
 from .google_accesslevel import GoogleAccessLevel
+from .google_grant_type import GoogleGrantType
 
 class GDriveTools():
 
@@ -86,7 +87,8 @@ class GDriveTools():
 
     return createdDocumentId
 
-  def grantApproval(self, sheetId: str, email: str, accessLevel: GoogleAccessLevel, emailText=''):
+  def grantApproval(self, sheetId: str, email: str, accessLevel: GoogleAccessLevel,
+    grantType=GoogleGrantType.USER, emailText=''):
     """
     Shares the document with the passed id to the user with the given email - address.
 
@@ -94,12 +96,14 @@ class GDriveTools():
       sheetId(str): The id of the document which should be shared.
       email(str): The EMail address of the user, to which the document should be shared.
       accessLevel(GoogleAccessLevel): The permissions which should be granted to the user.
+      [grantType(GoogleGrandType)=GoogleGrandType.USER]: The grant type which belongs to the
+      given email address.
       [emailText(str)]: A text which should be included in the email notification for the given user.
     """
 
     requestBody = {
       'role': accessLevel.value,
-      'type': 'user',
+      'type': grantType.value,
       'emailAddress': email
     }
 
