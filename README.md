@@ -144,9 +144,11 @@ You can grant Permissions to a given document by using the `grandApproval()` Met
 The method takes the following parameters:
 * `sheetId(str)`: The Id of the document, which should be shared with a user.
 * `email(str)`: The EMail address of the user, which should gain access to the document.
-* `accessLevel(GoogleAccessLevel): The type of permission which should be grant to the
+* `accessLevel(GoogleAccessLevel)`: The type of permission which should be grant to the
   user.
-* [emailText(str)='']: An optional text which should be embedded inside the
+* `[grantType(GoogleGrantTypes)]`: You can set a custom grant type by using this property.
+  _Please note that if you are using the grant type `DOMAIN`, the `email` parameter has to contain the name of the target domain._
+* `[emailText(str)='']`: An optional text which should be embedded inside the
   notification email.
 
 ## Example
