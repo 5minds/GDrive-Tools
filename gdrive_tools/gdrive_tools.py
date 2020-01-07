@@ -1,5 +1,6 @@
 from typing import List
 from googleapiclient.discovery import build
+from googleapiclient import errors
 
 from .google_filetypes import GoogleFiletypes
 
@@ -128,15 +129,20 @@ class GDriveTools():
       'values': [columns] + data
     }
 
-    self.__googleSheetsClient \
-      .spreadsheets()\
-      .values()\
-      .update(
-        spreadsheetId=sheetId,
-        range=fullA1Range,
-        valueInputOption='RAW',
-        body=requestBody)\
-      .execute()
+    try:
+      self.__googleSheetsClient \
+        .spreadsheets()\
+        .values()\
+        .update(
+          spreadsheetId=sheetId,
+          range=fullA1Range,
+          valueInputOption='RAW',
+          body=requestBody)\
+        .execute()
+
+    except errors.HttpError as ex:
+      if ex.resp['status'] == '400' and 'INVALID_ARGUMENT' in ex.content.decode():
+        raise ValueError(f'The sheet has no table named: "{sheetTableName}"')
 
   def __moveDocument(self, sourcePath, targetPath, copy=False):
     sourcePathAsList, sourceFileName = self.__getPathAndFilename(sourcePath)
