@@ -77,6 +77,8 @@ parameters are needed:
     * `GoogleFiletypes.SLIDE`: Google Slides file
 
 
+The method returns the id of the created document.
+
 ### Move a Document
 
 A document can be moved from one directory to another, either inside your
@@ -104,6 +106,8 @@ The following parameters are needed.
   moved to. The root point of this path points to the root directory of the
   shared drive with the name, defined by the `sourcePath` parameter.
 
+The method returns the id of the moved document.
+
 ### Copy a Document
 
 Its also possible to copy a document into another directory. This can
@@ -115,6 +119,8 @@ The following Parameters are required:
   The syntax is equivalent to the syntax of the `moveDocument()` Method.
 * `destinationPath(str)`: The path which defines where the copy of the source
   document should be created.
+
+The method returns the id of the copied document.
 
 ## Example
 

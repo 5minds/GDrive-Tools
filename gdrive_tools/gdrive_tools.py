@@ -42,6 +42,8 @@ class GDriveTools():
       type (int):             Type Identifier which defines the document type that
                               should be created.
 
+    Returns (str): The id of the created document.
+
     Todo:
       * Parse the Destination from any given input string into a list of directories.
         Currently, it is only supported to provide a list of directories instead of
@@ -89,6 +91,8 @@ class GDriveTools():
       sharedDriveName(str): Name of the Shared drive
       sourcePath(str): The path of the document that should be moved.
       targetPath(str): The path where the document should be moved to.
+
+    Returns str: The Id of the moved document.
     """
     movedDocumentId = self.__moveDocument(sourcePath, targetPath)
     return movedDocumentId
@@ -100,6 +104,8 @@ class GDriveTools():
     Args:
       sourcePath(str): A reference to the document which should be copied.
       targetPath(str): The target path where the document should be copied to.
+
+    Returns str: The Id of the moved document.
     """
     copiedDocumentId = self.__moveDocument(sourcePath, targetPath, copy=True)
     return copiedDocumentId
