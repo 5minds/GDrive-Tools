@@ -3,6 +3,7 @@ from googleapiclient.discovery import build
 from googleapiclient import errors
 
 from .google_filetypes import GoogleFiletypes
+from .google_accesslevel import GoogleAccessLevel
 
 class GDriveTools():
 
@@ -84,6 +85,29 @@ class GDriveTools():
     self.__moveDocumentToDirectory(createdDocumentId, targetDirectoryId)
 
     return createdDocumentId
+
+  def grantApproval(self, sheetId: str, email: str, accessLevel: GoogleAccessLevel, emailText=''):
+    """
+    Shares the document with the passed id to the user with the given email - address.
+
+    Args:
+      sheetId(str): The id of the document which should be shared.
+      email(str): The EMail address of the user, to which the document should be shared.
+      accessLevel(GoogleAccessLevel): The permissions which should be granted to the user.
+      [emailText(str)]: A text which should be included in the email notification for the given user.
+    """
+
+    requestBody = {
+      'role': accessLevel.value,
+      'type': 'user',
+      'emailAddress': email
+    }
+
+    self.__googleDriveClient.permissions().create(
+      fileId=sheetId,
+      emailMessage=emailText,
+      body=requestBody
+    ).execute()
 
   def moveDocument(self, sourcePath: str, targetPath: str):
     """
