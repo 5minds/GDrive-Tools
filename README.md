@@ -127,13 +127,16 @@ The method returns the id of the copied document.
 If you want to fill an drive sheet, its possible with the `fillSheet()` Method.
 Keep in mind that any existing data in the provided sheet will be overwritten.
 
-The following Parameters are required:
+The method takes the following parameters:
 
 * `sheetId(str)`: The Id of the sheet which should be filled.
 * `data(List[dict])` The data which should be inserted into the sheet as a list
   of JSON - Objects.
   The Columns are therefore defined by the keys of the given JSON Objects, whereas
   all JSON Objects in the passed list must have the same keys.
+* `[sheetTableName(str)='']` The name of the table inside the given sheet, where the data should
+  be inserted.
+  If the table does not exists, a `ValueError` will be thrown.
 
 ## Example
 
