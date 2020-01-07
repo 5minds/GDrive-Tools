@@ -137,6 +137,17 @@ The method takes the following parameters:
 * `[sheetTableName(str)='']` The name of the table inside the given sheet, where the data should
   be inserted.
   If the table does not exists, a `ValueError` will be thrown.
+### Grant Permissions
+
+You can grant Permissions to a given document by using the `grandApproval()` Method.
+
+The method takes the following parameters:
+* `sheetId(str)`: The Id of the document, which should be shared with a user.
+* `email(str)`: The EMail address of the user, which should gain access to the document.
+* `accessLevel(GoogleAccessLevel): The type of permission which should be grant to the
+  user.
+* [emailText(str)='']: An optional text which should be embedded inside the
+  notification email.
 
 ## Example
 
