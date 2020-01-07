@@ -144,6 +144,9 @@ class GDriveTools():
       if ex.resp['status'] == '400' and 'INVALID_ARGUMENT' in ex.content.decode():
         raise ValueError(f'The sheet has no table named: "{sheetTableName}"')
 
+      else:
+        raise
+
   def __moveDocument(self, sourcePath, targetPath, copy=False):
     sourcePathAsList, sourceFileName = self.__getPathAndFilename(sourcePath)
     targetPathAsList, targetFileName = self.__getPathAndFilename(targetPath)
