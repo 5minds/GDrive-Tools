@@ -182,10 +182,14 @@ class GDriveTools():
     not supported to process sheets contains extra cells.
 
     Args:
-      sheetId(str): The ID of the sheet, which should be returned.
-      [a1Range(str)]: An optional range in A1 notation. Only the data in the given range will be included
-      into the output dict - list.
-      [placeholder(dict)]: A dictionary which contains placeholder values.
+      sheetId(str): The id of the target sheet.
+      sheetName(str): The name of the table/sheet which should be used.
+      [a1Range(str)]: A custom range which points to the data which should be read.
+        Since the sheet name is already passed with the sheetName property, you can't
+        also specify it here.
+      [placeholder(dict)]: A dictionary which contains placeholder values for each
+        column, which is not defined. A column is also considered as _not defined_, if
+        the value is an empty string.
 
     Returns (str):
       The dictionary which contains the sheets content.
