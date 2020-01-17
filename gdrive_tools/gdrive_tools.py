@@ -175,7 +175,7 @@ class GDriveTools():
       else:
         raise
 
-  def readSheet(self, sheetId: str, sheetName: str, range=''):
+  def readSheet(self, sheetId: str, sheetName: str, a1Range='', placeholder=''):
     """
     Returns the content of the sheet with the passed sheetId as a List of Dictionaries.
     Its required, that the sheet only contains a static list. Its currently
@@ -183,13 +183,14 @@ class GDriveTools():
 
     Args:
       sheetId(str): The ID of the sheet, which should be returned.
-      [range(str)]: An optional range in A1 notation. Only the data in the given range will be included
+      [a1Range(str)]: An optional range in A1 notation. Only the data in the given range will be included
       into the output dict - list.
 
     Returns (str):
       The dictionary which contains the sheets content.
     """
-    a1Range = f"'{sheetName}'" if not range else range
+    a1Range = f"'{sheetName}'" if not a1Range else a1Range
+
     response = self.__googleSheetsClient\
       .spreadsheets()\
       .values()\
