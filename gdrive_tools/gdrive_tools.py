@@ -185,6 +185,7 @@ class GDriveTools():
       sheetId(str): The ID of the sheet, which should be returned.
       [a1Range(str)]: An optional range in A1 notation. Only the data in the given range will be included
       into the output dict - list.
+      [placeholder(str)]: Defines a placeholder value which should be inserted for each undefined cell.
 
     Returns (str):
       The dictionary which contains the sheets content.
@@ -198,7 +199,7 @@ class GDriveTools():
       .execute()
 
     sheetValues = response['valueRanges'][0]['values']
-    sheetAsDict = self.__generateDictFromList(sheetValues)
+    sheetAsDict = self.__generateDictFromList(sheetValues, placeholder)
 
     return sheetAsDict
 
@@ -516,7 +517,7 @@ class GDriveTools():
     return columns, values
 
   @staticmethod
-  def __generateDictFromList(data):
+  def __generateDictFromList(data, placeholder):
     # We can assume that the first row always contains the field names.
     columns = data[0]
     outList = []
@@ -524,7 +525,10 @@ class GDriveTools():
     for currentData in data[1:]:
       dictToAppend = {}
       for index, currentColumn in enumerate(columns):
-        dictToAppend[currentColumn] = currentData[index]
+        if index < len(currentData):
+          dictToAppend[currentColumn] = currentData[index]
+        else:
+          dictToAppend[currentColumn] = placeholder
 
       outList.append(dictToAppend)
 
