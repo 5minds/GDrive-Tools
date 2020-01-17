@@ -175,6 +175,33 @@ class GDriveTools():
       else:
         raise
 
+  def readSheet(self, sheetId: str, sheetName: str, range=''):
+    """
+    Returns the content of the sheet with the passed sheetId as a List of Dictionaries.
+    Its required, that the sheet only contains a static list. Its currently
+    not supported to process sheets contains extra cells.
+
+    Args:
+      sheetId(str): The ID of the sheet, which should be returned.
+      [range(str)]: An optional range in A1 notation. Only the data in the given range will be included
+      into the output dict - list.
+
+    Returns (str):
+      The dictionary which contains the sheets content.
+    """
+    a1Range = f"'{sheetName}'" if not range else range
+    response = self.__googleSheetsClient\
+      .spreadsheets()\
+      .values()\
+      .batchGet(spreadsheetId=sheetId, ranges=a1Range, fields='valueRanges')\
+      .execute()
+
+    sheetValues = response['valueRanges'][0]['values']
+    sheetAsDict = self.__generateDictFromList(sheetValues)
+
+    return sheetAsDict
+
+
   def __moveDocument(self, sourcePath, targetPath, copy=False):
     sourcePathAsList, sourceFileName = self.__getPathAndFilename(sourcePath)
     targetPathAsList, targetFileName = self.__getPathAndFilename(targetPath)
@@ -486,3 +513,18 @@ class GDriveTools():
       values.append(rowData)
 
     return columns, values
+
+  @staticmethod
+  def __generateDictFromList(data):
+    # We can assume that the first row always contains the field names.
+    columns = data[0]
+    outList = []
+
+    for currentData in data[1:]:
+      dictToAppend = {}
+      for index, currentColumn in enumerate(columns):
+        dictToAppend[currentColumn] = currentData[index]
+
+      outList.append(dictToAppend)
+
+    return outList
