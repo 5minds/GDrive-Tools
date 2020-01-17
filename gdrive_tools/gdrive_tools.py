@@ -194,7 +194,7 @@ class GDriveTools():
     Returns (str):
       The dictionary which contains the sheets content.
     """
-    a1Range = f"'{sheetName}'" if not a1Range else a1Range
+    a1Range = f"'{sheetName}'" if not a1Range else f"'{sheetName}'!{a1Range}"
 
     response = self.__googleSheetsClient\
       .spreadsheets()\
