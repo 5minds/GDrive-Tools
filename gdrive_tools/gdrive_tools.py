@@ -175,7 +175,7 @@ class GDriveTools():
       else:
         raise
 
-  def readSheet(self, sheetId: str, sheetName: str, a1Range='', placeholder=''):
+  def readSheet(self, sheetId: str, sheetName: str, a1Range='', placeholder='{}'):
     """
     Returns the content of the sheet with the passed sheetId as a List of Dictionaries.
     Its required, that the sheet only contains a static list. Its currently
@@ -185,7 +185,7 @@ class GDriveTools():
       sheetId(str): The ID of the sheet, which should be returned.
       [a1Range(str)]: An optional range in A1 notation. Only the data in the given range will be included
       into the output dict - list.
-      [placeholder(str)]: Defines a placeholder value which should be inserted for each undefined cell.
+      [placeholder(dict)]: A dictionary which contains placeholder values.
 
     Returns (str):
       The dictionary which contains the sheets content.
@@ -522,13 +522,15 @@ class GDriveTools():
     columns = data[0]
     outList = []
 
-    for currentData in data[1:]:
+    for rowIndex, currentData in enumerate(data[1:]):
       dictToAppend = {}
       for index, currentColumn in enumerate(columns):
-        if index < len(currentData):
+        if index < len(currentData) and currentData[index]:
           dictToAppend[currentColumn] = currentData[index]
+        elif currentColumn in placeholder:
+          dictToAppend[currentColumn] = placeholder[currentColumn]
         else:
-          dictToAppend[currentColumn] = placeholder
+          raise ValueError(f'Undefined column named "{currentColumn}" in row {rowIndex}')
 
       outList.append(dictToAppend)
 
