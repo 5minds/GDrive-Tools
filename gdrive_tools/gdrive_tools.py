@@ -28,7 +28,8 @@ class GDriveTools():
   def createFile(self,
                  destination: str,
                  documentName: str,
-                 fileType: GoogleFiletypes):
+                 fileType: GoogleFiletypes,
+                 **kwargs):
     """Creates a new file at the given path in the team clipboard with the passed
     id.
 
@@ -45,6 +46,11 @@ class GDriveTools():
 
       type (int):             Type Identifier which defines the document type that
                               should be created.
+
+      Additional keyword arguments can be set. Currently, the following options
+      are supported:
+        [sheetName(str)]: Defines the name of the first sheet, when creating a new
+                          sheet.
 
     Returns (str): The id of the created document.
 
@@ -78,7 +84,7 @@ class GDriveTools():
       targetDirectoryId = self.__searchForTargetDirectory(directoryTreeForFile, sharedDriveId, destinationList)
 
     # Create the Document
-    createdDocumentId = self.__createFile(documentName, fileType)
+    createdDocumentId = self.__createFile(documentName, fileType, **kwargs)
 
     # After creation, we have to move the document to the target
     # directory. This is because there seems to be no way to directly attach
@@ -194,6 +200,7 @@ class GDriveTools():
     Returns (str):
       The dictionary which contains the sheets content.
     """
+
     a1Range = f"'{sheetName}'" if not a1Range else f"'{sheetName}'!{a1Range}"
 
     response = self.__googleSheetsClient\
@@ -345,14 +352,14 @@ class GDriveTools():
     return createdDirectory.get('id')
 
 
-  def __createFile(self, name, filetype):
+  def __createFile(self, name, filetype, **kwargs):
     createdFileId = ''
 
     if filetype == GoogleFiletypes.DOCUMENT:
       createdFileId = self.__createDocument(name)
 
     elif filetype == GoogleFiletypes.SHEET:
-      createdFileId = self.__createSheet(name)
+      createdFileId = self.__createSheet(name, **kwargs)
 
     elif filetype == GoogleFiletypes.SLIDE:
       createdFileId = self.__createSlide(name)
@@ -370,11 +377,18 @@ class GDriveTools():
 
     return createdDocument.get('documentId')
 
-  def __createSheet(self, sheetName):
+  def __createSheet(self, sheetName, firstSheetName=''):
     requestBody = {
       'properties': {
         'title': sheetName
-      }
+      },
+      'sheets': [
+        {
+          'properties': {
+            'title': firstSheetName
+          }
+        }
+      ]
     }
 
     createdSpreadsheetId = self.__googleSheetsClient.spreadsheets()\
