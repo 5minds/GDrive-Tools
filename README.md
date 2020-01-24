@@ -137,6 +137,27 @@ The method takes the following parameters:
 * `[sheetTableName(str)='']` The name of the table inside the given sheet, where the data should
   be inserted.
   If the table does not exists, a `ValueError` will be thrown.
+
+### Read Data from a Sheet
+
+With the `readSheet()` method you can read the data from a sheet. The method
+will return a list of dictionaries which contains the sheets rows and columns.
+
+The target sheet has to contain only a single table without extra cells. Its assumed
+that the first row defines the names of the columns.
+However, its possible to specify a custom range in the A1 notation, where the
+table is placed.
+
+The method takes the following parameters:
+ * `sheetId(str)`: The id of the target sheet.
+ * `sheetName(str)`: The name of the table/sheet which should be used.
+ * `[a1Range(str)]`: A custom range which points to the data which should be read.
+    Since the sheet name is already passed with the sheetName property, you can't
+    also specify it here.
+* `[placeholder(dict)]`: A dictionary which contains placeholder values for each
+  column, which is not defined. A column is also considered as _not defined_, if
+  the value is an empty string.
+
 ### Grant Permissions
 
 You can grant Permissions to a given document by using the `grandApproval()` Method.

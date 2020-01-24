@@ -175,6 +175,39 @@ class GDriveTools():
       else:
         raise
 
+  def readSheet(self, sheetId: str, sheetName: str, a1Range='', placeholder='{}'):
+    """
+    Returns the content of the sheet with the passed sheetId as a List of Dictionaries.
+    Its required, that the sheet only contains a static list. Its currently
+    not supported to process sheets contains extra cells.
+
+    Args:
+      sheetId(str): The id of the target sheet.
+      sheetName(str): The name of the table/sheet which should be used.
+      [a1Range(str)]: A custom range which points to the data which should be read.
+        Since the sheet name is already passed with the sheetName property, you can't
+        also specify it here.
+      [placeholder(dict)]: A dictionary which contains placeholder values for each
+        column, which is not defined. A column is also considered as _not defined_, if
+        the value is an empty string.
+
+    Returns (str):
+      The dictionary which contains the sheets content.
+    """
+    a1Range = f"'{sheetName}'" if not a1Range else f"'{sheetName}'!{a1Range}"
+
+    response = self.__googleSheetsClient\
+      .spreadsheets()\
+      .values()\
+      .batchGet(spreadsheetId=sheetId, ranges=a1Range, fields='valueRanges')\
+      .execute()
+
+    sheetValues = response['valueRanges'][0]['values']
+    sheetAsDict = self.__generateDictFromList(sheetValues, placeholder)
+
+    return sheetAsDict
+
+
   def __moveDocument(self, sourcePath, targetPath, copy=False):
     sourcePathAsList, sourceFileName = self.__getPathAndFilename(sourcePath)
     targetPathAsList, targetFileName = self.__getPathAndFilename(targetPath)
@@ -486,3 +519,23 @@ class GDriveTools():
       values.append(rowData)
 
     return columns, values
+
+  @staticmethod
+  def __generateDictFromList(data, placeholder):
+    # We can assume that the first row always contains the field names.
+    columns = data[0]
+    outList = []
+
+    for rowIndex, currentData in enumerate(data[1:]):
+      dictToAppend = {}
+      for index, currentColumn in enumerate(columns):
+        if index < len(currentData) and currentData[index]:
+          dictToAppend[currentColumn] = currentData[index]
+        elif currentColumn in placeholder:
+          dictToAppend[currentColumn] = placeholder[currentColumn]
+        else:
+          raise ValueError(f'Undefined column named "{currentColumn}" in row {rowIndex}')
+
+      outList.append(dictToAppend)
+
+    return outList
