@@ -225,6 +225,8 @@ class GDriveTools():
 
     if isSharedDrive:
       sourcePathAsList = sourcePathAsList[1:]
+
+    if isTargetSharedDrive:
       targetPathAsList = targetPathAsList[1:]
 
     everythingFromSrcDrive = self.__getAllFilesOfDrive(driveId, isSharedDrive)
