@@ -55,9 +55,20 @@ The following
 parameters are needed:
 
 * `destination(str)`: Full path, where the document should be moved to.
-  The root is either the shared drive with the given name or just the root directory of your local drive (if you want to create a new document on
-  your local drive).
   All directories are delimited by a simple slash (`/`).
+  If the document should be created in a shared drive, the name of the shared
+  drive should be provided first. (Its basically seen as the root directory.)
+  Example:
+  ```
+  MySharedDrive/subdirectory/anotherSubdirectory
+  ```
+
+  If you want to create a new document on your local drive, the first
+  entry is also the first sub folder. Example:
+  ```
+  subdirectory/anotherSubdirectory
+  ```
+
 * `documentName(str)`: Name of the Document that should be created.
 * `fileType(int)`: Type of the document. Currently, the following types are
   supported:
@@ -66,6 +77,8 @@ parameters are needed:
     * `GoogleFiletypes.SLIDE`: Google Slides file
 
 
+The method returns the id of the created document.
+
 ### Move a Document
 
 A document can be moved from one directory to another, either inside your
@@ -73,12 +86,91 @@ local or a shared drive, using the `moveDocument()` method.
 
 The following parameters are needed.
 
-* `sourcePath(str)`: The full source path of the document that should be  moved.
-  The root is either the shared drive with the given name or just the root directory of your local drive (if you want to move a document on
-  your local drive).
+* `sourcePath(str)`: The full source path of the document that should be moved.
+  Full path, where the document should be moved to.
+  All directories are delimited by a simple slash (`/`). The last portion
+  describes the name of the moved file.
+  If the document should be created in a shared drive, the name of the shared
+  drive should be provided first. (Its basically seen as the root directory.)
+  Example:
+  ```
+  MySharedDrive/subdirectory/anotherSubdirectory/targetFilename
+  ```
+
+  If you want to create a new document on your local drive, the first
+  entry is also the first sub folder. Example:
+  ```
+  subdirectory/anotherSubdirectory/targetFilename
+  ```
 * `destinationPath(str)`: The target path where the document should be
   moved to. The root point of this path points to the root directory of the
   shared drive with the name, defined by the `sourcePath` parameter.
+
+The method returns the id of the moved document.
+
+### Copy a Document
+
+Its also possible to copy a document into another directory. This can
+be archived by using the `copyDocument()` - Method.
+
+The following Parameters are required:
+
+* `sourcePath(str)`: The full source path of the document that should be copied.
+  The syntax is equivalent to the syntax of the `moveDocument()` Method.
+* `destinationPath(str)`: The path which defines where the copy of the source
+  document should be created.
+
+The method returns the id of the copied document.
+
+### Fill a Sheet
+
+If you want to fill an drive sheet, its possible with the `fillSheet()` Method.
+Keep in mind that any existing data in the provided sheet will be overwritten.
+
+The method takes the following parameters:
+
+* `sheetId(str)`: The Id of the sheet which should be filled.
+* `data(List[dict])` The data which should be inserted into the sheet as a list
+  of JSON - Objects.
+  The Columns are therefore defined by the keys of the given JSON Objects, whereas
+  all JSON Objects in the passed list must have the same keys.
+* `[sheetTableName(str)='']` The name of the table inside the given sheet, where the data should
+  be inserted.
+  If the table does not exists, a `ValueError` will be thrown.
+
+### Read Data from a Sheet
+
+With the `readSheet()` method you can read the data from a sheet. The method
+will return a list of dictionaries which contains the sheets rows and columns.
+
+The target sheet has to contain only a single table without extra cells. Its assumed
+that the first row defines the names of the columns.
+However, its possible to specify a custom range in the A1 notation, where the
+table is placed.
+
+The method takes the following parameters:
+ * `sheetId(str)`: The id of the target sheet.
+ * `sheetName(str)`: The name of the table/sheet which should be used.
+ * `[a1Range(str)]`: A custom range which points to the data which should be read.
+    Since the sheet name is already passed with the sheetName property, you can't
+    also specify it here.
+* `[placeholder(dict)]`: A dictionary which contains placeholder values for each
+  column, which is not defined. A column is also considered as _not defined_, if
+  the value is an empty string.
+
+### Grant Permissions
+
+You can grant Permissions to a given document by using the `grandApproval()` Method.
+
+The method takes the following parameters:
+* `sheetId(str)`: The Id of the document, which should be shared with a user.
+* `email(str)`: The EMail address of the user, which should gain access to the document.
+* `accessLevel(GoogleAccessLevel)`: The type of permission which should be grant to the
+  user.
+* `[grantType(GoogleGrantTypes)]`: You can set a custom grant type by using this property.
+  _Please note that if you are using the grant type `DOMAIN`, the `email` parameter has to contain the name of the target domain._
+* `[emailText(str)='']`: An optional text which should be embedded inside the
+  notification email.
 
 ## Example
 
