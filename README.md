@@ -75,7 +75,10 @@ parameters are needed:
     * `GoogleFiletypes.DOCUMENT`: Google Docs file
     * `GoogleFiletypes.SHEET`: Google Sheets file
     * `GoogleFiletypes.SLIDE`: Google Slides file
-
+* There are also different keyword arguments which can be used, to modify the
+  created documents. The following ones are currently supported:
+    * `sheetTableName(str): Specify a custom name which should be used for the first Sheet,
+      when creating a new sheet.
 
 The method returns the id of the created document.
 
