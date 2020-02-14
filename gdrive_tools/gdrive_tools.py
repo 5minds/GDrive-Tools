@@ -553,7 +553,7 @@ class GDriveTools():
     columns = data[0]
     outList = []
 
-    for rowIndex, currentData in enumerate(data[1:]):
+    for currentData in data[1:]:
       dictToAppend = {}
       for index, currentColumn in enumerate(columns):
         if index < len(currentData) and currentData[index]:
