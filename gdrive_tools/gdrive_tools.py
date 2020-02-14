@@ -269,6 +269,19 @@ class GDriveTools():
       The Id of the document, which is stored on the provided path,
       or an empty string, if the document does not exists.
     """
+    directories, filename = self.__getPathAndFilename(path)
+    filesFromDirectory = self.__readFilesFromDirectory(directories)[0]
+
+    if not filesFromDirectory:
+      return ''
+
+    fileId = ''
+    for currentFile in filesFromDirectory:
+      if currentFile['name'] == filename:
+        fileId = currentFile['id']
+        break
+
+    return fileId
 
   def __moveDocument(self, sourcePath, targetPath, copy=False):
     sourcePathAsList, sourceFileName = self.__getPathAndFilename(sourcePath)
