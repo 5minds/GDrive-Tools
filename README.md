@@ -177,6 +177,32 @@ The method takes the following parameters:
 * `[emailText(str)='']`: An optional text which should be embedded inside the
   email notification which is automatically send by google, if a user gained access to a document.
 
+### Read all Files from a Directory
+
+If you want to retrieve a list of all files in a given directory, you can use
+the `readDirectory()` method. As the name suggests, this method returns a
+list of all files which are included in this directory.
+
+
+The return value of this method is a directory, which has the following keys:
+  * `directory_id`: ID of the directory
+  * `files`: List of files, found inside this directory.
+
+Whereas each file - directory has the following properties:
+  * `name`: Name of the file
+  * `id`: ID of the file
+  * `type`: filetype
+
+
+The method only needs one parameter:
+* `path(str)`: The path of the directory which should be read. The syntax is the
+  same as in the `moveDocument()` or `copyDocument()` methods.
+
+This method returns the dictionary, which is described above.
+
+A _ValueError_ is thrown, if the given directory does
+not exists.
+
 ## Example
 
 You can test the library using the given `example.py` script.
