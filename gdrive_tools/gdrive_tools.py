@@ -277,7 +277,7 @@ class GDriveTools():
 
     fileId = ''
     for currentFile in filesFromDirectory:
-      if currentFile['name'] == filename:
+      if currentFile['name'] == filename and not 'folder' in currentFile['mimeType']:
         fileId = currentFile['id']
         break
 
