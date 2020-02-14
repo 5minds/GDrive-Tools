@@ -68,20 +68,21 @@ class GDriveTools():
     destinationList = self.__getPathListForPath(destination)
 
     # Try to obtain the id of the drive with the given name
-    sharedDriveId = self.__getIdOfSharedDrive(destinationList[0]) if len(destinationList) > 0 else ''
-    if sharedDriveId:
+    driveId, isSharedDrive = self.__getDriveId(destinationList[0]) if len(destinationList) > 0 else ('', False)
+    if isSharedDrive:
       destinationList = destinationList[1:]
 
-    directoriesFromClipboard = self.__getAllDirectoriesFromClipboard(sharedDriveId)
+    directoriesFromClipboard = self.__getAllDirectoriesFromClipboard(driveId, isSharedDrive)
 
     # If the target directory list is empty, the document should be created
     # inside the root directory.
     if len(destinationList) == 0:
-      targetDirectoryId = sharedDriveId
+      targetDirectoryId = driveId
 
     else:
-      directoryTreeForFile = self.__buildDirectoryListForPath(directoriesFromClipboard, destinationList, sharedDriveId)
-      targetDirectoryId = self.__searchForTargetDirectory(directoryTreeForFile, sharedDriveId, destinationList)
+      directoryTreeForFile = self.__buildDirectoryListForPath(directoriesFromClipboard, destinationList, driveId)
+      print(directoryTreeForFile)
+      targetDirectoryId = self.__searchForTargetDirectory(directoryTreeForFile, driveId, destinationList)
 
     # Create the Document
     createdDocumentId = self.__createFile(documentName, fileType, **kwargs)
@@ -292,9 +293,9 @@ class GDriveTools():
     rootDrive = self.__googleDriveClient.files().get(fileId='root', fields="id").execute()
     return rootDrive.get('id')
 
-  def __getAllDirectoriesFromClipboard(self, clipboardId):
+  def __getAllDirectoriesFromClipboard(self, clipboardId, isSharedDrive):
     files = []
-    if clipboardId:
+    if isSharedDrive:
       files = self.__googleDriveClient \
         .files() \
         .list(
