@@ -548,7 +548,12 @@ class GDriveTools():
   @staticmethod
   def __getPathListForPath(sourcePath):
     pathList = sourcePath.split('/')
-    return pathList if pathList[0] != '' else pathList[1:]
+
+    # Remove empty string on the start and end of the splitted source path list.
+    pathList = pathList if pathList[0] != '' else pathList[1:]
+    pathList = pathList if pathList[-1] != '' else pathList[:-1]
+
+    return pathList
 
   @staticmethod
   def __orderDirectoriesAndFiles(filesToOrder):
