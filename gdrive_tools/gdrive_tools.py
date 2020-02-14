@@ -266,6 +266,20 @@ class GDriveTools():
 
     return retDict
 
+  def getDocumentId(self, path: str):
+    """
+    Returns the document id of the document, which can be found
+    under the provided path.
+
+    Args:
+      * path(str): The path to the document, whose Id should be
+        returned.
+
+    Returns:
+      The Id of the document, which is stored on the provided path,
+      or an empty string, if the document does not exists.
+    """
+
   def __moveDocument(self, sourcePath, targetPath, copy=False):
     sourcePathAsList, sourceFileName = self.__getPathAndFilename(sourcePath)
     targetPathAsList, targetFileName = self.__getPathAndFilename(targetPath)
