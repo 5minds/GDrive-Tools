@@ -561,7 +561,7 @@ class GDriveTools():
         elif currentColumn in placeholder:
           dictToAppend[currentColumn] = placeholder[currentColumn]
         else:
-          raise ValueError(f'Undefined column named "{currentColumn}" in row {rowIndex}')
+          dictToAppend[currentColumn] = None
 
       outList.append(dictToAppend)
 
