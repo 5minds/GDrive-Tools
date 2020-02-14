@@ -214,6 +214,30 @@ class GDriveTools():
 
     return sheetAsDict
 
+  def readDirectory(self, path: str):
+    """
+    Reads the directory from the given path and returns the ID of the
+    directory and each file with the properties 'name', 'id' and 'type'.
+
+    The returned Dictionary has the following keys:
+      * directory_id: ID of the directory
+      * files: List of files, found inside this directory.
+
+    Whereas each file - directory has the following properties:
+      * name: Name of the file
+      * id: ID of the file
+      * type: filetype
+
+    Args:
+      path(str): The path of the directory which should be read.
+
+    Returns:
+      A dictionary which contains the Id of the directory behind the passed path
+      and all files inside it.
+
+    Throws:
+      * ValueError: If the directory behind the path does not exists.
+    """
 
   def __moveDocument(self, sourcePath, targetPath, copy=False):
     sourcePathAsList, sourceFileName = self.__getPathAndFilename(sourcePath)
