@@ -220,21 +220,34 @@ class GDriveTools():
     targetPathAsList, targetFileName = self.__getPathAndFilename(targetPath)
 
     driveId, isSharedDrive  = self.__getDriveId(sourcePathAsList[0]) if len(sourcePathAsList) > 0 else ''
+    targetDriveId, isTargetSharedDrive = self.__getDriveId(targetPathAsList[0]) if len(targetPathAsList) > 0 else ''
+    targetDriveIsDifferent = driveId != targetDriveId
 
     if isSharedDrive:
       sourcePathAsList = sourcePathAsList[1:]
 
-    everythingFromDrive = self.__getAllFilesOfDrive(driveId, isSharedDrive)
-    directories, files = self.__orderDirectoriesAndFiles(everythingFromDrive)
+    if isTargetSharedDrive:
+      targetPathAsList = targetPathAsList[1:]
 
-    parentDirectoryId = self.__getParentDirectoryId(directories, sourcePathAsList, driveId)
-    sourceDocumentId = self.__findDocumentIdWithParentId(files, sourceFileName, parentDirectoryId)
+    everythingFromSrcDrive = self.__getAllFilesOfDrive(driveId, isSharedDrive)
+    srcDirectories, srcFiles = self.__orderDirectoriesAndFiles(everythingFromSrcDrive)
+
+    parentDirectoryId = self.__getParentDirectoryId(srcDirectories, sourcePathAsList, driveId)
+    sourceDocumentId = self.__findDocumentIdWithParentId(srcFiles, sourceFileName, parentDirectoryId)
 
     if not sourceDocumentId:
       raise ValueError(f'Document "{sourcePath}" not found!')
 
-    targetDirectoryTree = self.__buildDirectoryListForPath(directories, targetPathAsList, driveId)
-    targetDirectoryId = self.__searchForTargetDirectory(targetDirectoryTree, driveId, targetPathAsList)
+    targetDirectories = []
+
+    if targetDriveIsDifferent:
+      everythingFromTargetDrive = self.__getAllFilesOfDrive(targetDriveId, isTargetSharedDrive)
+      targetDirectories = self.__orderDirectoriesAndFiles(everythingFromTargetDrive)[0]
+    else:
+      targetDirectories = srcDirectories
+
+    targetDirectoryTree = self.__buildDirectoryListForPath(targetDirectories, targetPathAsList, targetDriveId)
+    targetDirectoryId = self.__searchForTargetDirectory(targetDirectoryTree, targetDriveId, targetPathAsList)
 
     if copy:
       copiedDocumentId = self.__googleDriveClient.files()\

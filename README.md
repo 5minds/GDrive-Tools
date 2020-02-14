@@ -85,7 +85,7 @@ The method returns the id of the created document.
 ### Move a Document
 
 A document can be moved from one directory to another, either inside your
-local or a shared drive, using the `moveDocument()` method.
+local, shared drive or between shared drives, using the `moveDocument()` method.
 
 The following parameters are needed.
 
@@ -106,15 +106,15 @@ The following parameters are needed.
   subdirectory/anotherSubdirectory/targetFilename
   ```
 * `destinationPath(str)`: The target path where the document should be
-  moved to. The root point of this path points to the root directory of the
-  shared drive with the name, defined by the `sourcePath` parameter.
+  moved to. The described syntax of the `sourcePath` parameter also applies here.
 
 The method returns the id of the moved document.
 
 ### Copy a Document
 
-Its also possible to copy a document into another directory. This can
-be archived by using the `copyDocument()` - Method.
+Its also possible to copy a document into another directory and/or to another
+team drive. This can
+be done by using the `copyDocument()` - Method.
 
 The following Parameters are required:
 
