@@ -240,7 +240,8 @@ class GDriveTools():
     Throws:
       * ValueError: If the directory behind the path does not exists.
     """
-    filesFromDir, directoryId = self.__readFilesFromDirectory(path)
+    pathAsList = self.__getPathListForPath(path)
+    filesFromDir, directoryId = self.__readFilesFromDirectory(pathAsList)
 
     if filesFromDir is None:
       raise ValueError(f'The directory {path} was not found.')
@@ -316,19 +317,16 @@ class GDriveTools():
 
     return sourceDocumentId
 
-  def __readFilesFromDirectory(self, path):
-    # Convert the given Path into a List
-    destinationList = self.__getPathListForPath(path)
-
+  def __readFilesFromDirectory(self, pathList):
     # Try to obtain the id of the drive with the given name
-    driveId, isSharedDrive = self.__getDriveId(destinationList[0]) if len(destinationList) > 0 else ('', False)
+    driveId, isSharedDrive = self.__getDriveId(pathList[0]) if len(pathList) > 0 else ('', False)
     if isSharedDrive:
-      destinationList = destinationList[1:]
+      pathList = pathList[1:]
 
     directoriesFromClipboard = self.__getAllDirectoriesFromClipboard(driveId, isSharedDrive)
-    dirTree = self.__buildDirectoryListForPath(directoriesFromClipboard, destinationList, driveId)
+    dirTree = self.__buildDirectoryListForPath(directoriesFromClipboard, pathList, driveId)
 
-    directoryNotFound = dirTree[-1].get('name') != destinationList[-1]
+    directoryNotFound = dirTree[-1].get('name') != pathList[-1]
     if directoryNotFound:
       return None, ''
 
