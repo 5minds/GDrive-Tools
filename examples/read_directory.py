@@ -1,5 +1,6 @@
 """
-This example creates a simple document inside a provided subdirectory.
+This example reads the content of a directory and writes the files from the
+directory to the console.
 """
 
 import gdrive_tools.gdrive_tools as gt
