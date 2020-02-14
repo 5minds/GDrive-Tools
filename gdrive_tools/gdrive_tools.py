@@ -81,7 +81,6 @@ class GDriveTools():
 
     else:
       directoryTreeForFile = self.__buildDirectoryListForPath(directoriesFromClipboard, destinationList, driveId)
-      print(directoryTreeForFile)
       targetDirectoryId = self.__searchForTargetDirectory(directoryTreeForFile, driveId, destinationList)
 
     # Create the Document
