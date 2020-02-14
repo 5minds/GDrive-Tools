@@ -1,3 +1,5 @@
+import re
+
 from typing import List
 from googleapiclient.discovery import build
 from googleapiclient import errors
@@ -238,23 +240,10 @@ class GDriveTools():
     Throws:
       * ValueError: If the directory behind the path does not exists.
     """
-    # Convert the given Path into a List
-    destinationList = self.__getPathListForPath(path)
+    filesFromDir, directoryId = self.__readFilesFromDirectory(path)
 
-    # Try to obtain the id of the drive with the given name
-    driveId, isSharedDrive = self.__getDriveId(destinationList[0]) if len(destinationList) > 0 else ('', False)
-    if isSharedDrive:
-      destinationList = destinationList[1:]
-
-    directoriesFromClipboard = self.__getAllDirectoriesFromClipboard(driveId, isSharedDrive)
-    dirTree = self.__buildDirectoryListForPath(directoriesFromClipboard, destinationList, driveId)
-
-    directoryNotFound = dirTree[-1].get('name') != destinationList[-1]
-    if directoryNotFound:
-      raise ValueError(f'The Directory {path} does not exists.')
-
-    directoryId = dirTree[-1].get('id')
-    filesFromDir = self.__getFilesFromDirectory(directoryId, isSharedDrive)
+    if filesFromDir is None:
+      raise ValueError(f'The directory {path} was not found.')
 
     retDict = {}
     retDict['directory_id'] = directoryId
@@ -326,6 +315,27 @@ class GDriveTools():
     self.__moveDocumentToDirectory(sourceDocumentId, targetDirectoryId, targetFileName=targetFileName)
 
     return sourceDocumentId
+
+  def __readFilesFromDirectory(self, path):
+    # Convert the given Path into a List
+    destinationList = self.__getPathListForPath(path)
+
+    # Try to obtain the id of the drive with the given name
+    driveId, isSharedDrive = self.__getDriveId(destinationList[0]) if len(destinationList) > 0 else ('', False)
+    if isSharedDrive:
+      destinationList = destinationList[1:]
+
+    directoriesFromClipboard = self.__getAllDirectoriesFromClipboard(driveId, isSharedDrive)
+    dirTree = self.__buildDirectoryListForPath(directoriesFromClipboard, destinationList, driveId)
+
+    directoryNotFound = dirTree[-1].get('name') != destinationList[-1]
+    if directoryNotFound:
+      return None, ''
+
+    directoryId = dirTree[-1].get('id')
+    filesFromDir = self.__getFilesFromDirectory(directoryId, isSharedDrive)
+
+    return filesFromDir, directoryId
 
   def __getDriveId(self, driveName):
     driveId = self.__getIdOfSharedDrive(driveName)
