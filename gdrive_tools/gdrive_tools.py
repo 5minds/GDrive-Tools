@@ -271,7 +271,7 @@ class GDriveTools():
     """
     directories, filename = self.__getPathAndFilename(path)
     filesFromDirectory = self.__readFilesFromDirectory(directories)[0]
-
+    print(filesFromDirectory)
     if not filesFromDirectory:
       return ''
 
@@ -429,14 +429,14 @@ class GDriveTools():
       .list(
         includeItemsFromAllDrives=True,
         supportsAllDrives=True,
-        q=f"'{directoryId}' in parents",
+        q=f"'{directoryId}' in parents and not trashed",
         fields='files(id, name, mimeType)') \
       .execute()
     else:
       queryResult = self.__googleDriveClient\
         .files()\
         .list(
-          q=f"'{directoryId}' in parents",
+          q=f"'{directoryId}' in parents and not trashed",
           fields='files(id, name, mimeType)') \
         .execute()
 
