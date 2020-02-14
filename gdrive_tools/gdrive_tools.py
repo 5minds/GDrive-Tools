@@ -271,7 +271,6 @@ class GDriveTools():
     """
     directories, filename = self.__getPathAndFilename(path)
     filesFromDirectory = self.__readFilesFromDirectory(directories)[0]
-    print(filesFromDirectory)
     if not filesFromDirectory:
       return ''
 
