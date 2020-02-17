@@ -250,7 +250,8 @@ class GDriveTools():
     retDict['directory_id'] = directoryId
 
     for currentFile in filesFromDir:
-      currentFile['type'] = currentFile.pop('mimeType')
+      mimeType = currentFile.pop('mimeType')
+      currentFile['type'] = self.__convertMimeType(mimeType)
 
     retDict['files'] = filesFromDir
 
@@ -484,7 +485,9 @@ class GDriveTools():
       createdFileId = self.__createSlide(name)
 
     else:
-      raise ValueError('The Given Filetype is not valid!')
+      message = "The given Filetype is currently not supported. Supported filetypes are: "\
+        "DOCUMENT, SHEET and SLIDE."
+      raise ValueError(message)
 
     return createdFileId
 
@@ -677,3 +680,28 @@ class GDriveTools():
       outList.append(dictToAppend)
 
     return outList
+
+  @staticmethod
+  def __convertMimeType(mimeType):
+    if mimeType == 'application/vnd.google-apps.document':
+      return GoogleFiletypes.DOCUMENT
+    elif mimeType == 'application/vnd.google-apps.spreadsheet':
+      return GoogleFiletypes.SHEET
+    elif mimeType == 'application/vnd.google-apps.presentation':
+      return GoogleFiletypes.SLIDE
+    elif mimeType == 'application/vnd.google-apps.drawing':
+      return GoogleFiletypes.DRAWING
+    elif mimeType == 'application/vnd.google-apps.form':
+      return GoogleFiletypes.FORM
+    elif mimeType == 'application/vnd.google-apps.fusiontable':
+      return GoogleFiletypes.FUSIONTABLE
+    elif mimeType == 'application/vnd.google-apps.map':
+      return GoogleFiletypes.MAP
+    elif mimeType == 'application/vnd.google-apps.script':
+      return GoogleFiletypes.APPSCRIPT
+    elif mimeType == 'application/vnd.google-apps.site':
+      return GoogleFiletypes.SITE
+    elif mimeType == 'application/vnd.google-apps.drive-sdk':
+      return GoogleFiletypes.DRIVESDK
+    else:
+      return GoogleFiletypes.FILE
