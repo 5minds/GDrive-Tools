@@ -214,6 +214,57 @@ class GDriveTools():
 
     return sheetAsDict
 
+  def readDirectory(self, path: str):
+    """
+    Reads the directory from the given path and returns the ID of the
+    directory and each file with the properties 'name', 'id' and 'type'.
+
+    The returned Dictionary has the following keys:
+      * directory_id: ID of the directory
+      * files: List of files, found inside this directory.
+
+    Whereas each file - directory has the following properties:
+      * name: Name of the file
+      * id: ID of the file
+      * type: filetype
+
+    Args:
+      path(str): The path of the directory which should be read.
+
+    Returns:
+      A dictionary which contains the Id of the directory behind the passed path
+      and all files inside it.
+
+    Throws:
+      * ValueError: If the directory behind the path does not exists.
+    """
+    # Convert the given Path into a List
+    destinationList = self.__getPathListForPath(path)
+
+    # Try to obtain the id of the drive with the given name
+    driveId, isSharedDrive = self.__getDriveId(destinationList[0]) if len(destinationList) > 0 else ('', False)
+    if isSharedDrive:
+      destinationList = destinationList[1:]
+
+    directoriesFromClipboard = self.__getAllDirectoriesFromClipboard(driveId, isSharedDrive)
+    dirTree = self.__buildDirectoryListForPath(directoriesFromClipboard, destinationList, driveId)
+
+    directoryNotFound = dirTree[-1].get('name') != destinationList[-1]
+    if directoryNotFound:
+      raise ValueError(f'The Directory {path} does not exists.')
+
+    directoryId = dirTree[-1].get('id')
+    filesFromDir = self.__getFilesFromDirectory(directoryId, isSharedDrive)
+
+    retDict = {}
+    retDict['directory_id'] = directoryId
+
+    for currentFile in filesFromDir:
+      currentFile['type'] = currentFile.pop('mimeType')
+
+    retDict['files'] = filesFromDir
+
+    return retDict
 
   def __moveDocument(self, sourcePath, targetPath, copy=False):
     sourcePathAsList, sourceFileName = self.__getPathAndFilename(sourcePath)
@@ -334,6 +385,27 @@ class GDriveTools():
         .list(q="not trashed", fields='files(id, name, mimeType, parents)').execute()
 
     return files['files']
+
+  def __getFilesFromDirectory(self, directoryId, isSharedDrive):
+    queryResult = None
+    if isSharedDrive:
+      queryResult = self.__googleDriveClient\
+      .files()\
+      .list(
+        includeItemsFromAllDrives=True,
+        supportsAllDrives=True,
+        q=f"'{directoryId}' in parents",
+        fields='files(id, name, mimeType)') \
+      .execute()
+    else:
+      queryResult = self.__googleDriveClient\
+        .files()\
+        .list(
+          q=f"'{directoryId}' in parents",
+          fields='files(id, name, mimeType)') \
+        .execute()
+
+    return queryResult['files']
 
   def __searchForTargetDirectory(self, directoryTree, driveId, destinationPath):
     targetDirectoryId = directoryTree[-1].get('id') if len(directoryTree) > 0 else driveId
