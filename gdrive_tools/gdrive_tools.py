@@ -1,3 +1,5 @@
+import re
+
 from typing import List
 from googleapiclient.discovery import build
 from googleapiclient import errors
@@ -28,7 +30,8 @@ class GDriveTools():
   def createFile(self,
                  destination: str,
                  documentName: str,
-                 fileType: GoogleFiletypes):
+                 fileType: GoogleFiletypes,
+                 **kwargs):
     """Creates a new file at the given path in the team clipboard with the passed
     id.
 
@@ -46,6 +49,11 @@ class GDriveTools():
       type (int):             Type Identifier which defines the document type that
                               should be created.
 
+      Additional keyword arguments can be set. Currently, the following options
+      are supported:
+        [sheetName(str)]: Defines the name of the first sheet, when creating a new
+                          sheet.
+
     Returns (str): The id of the created document.
 
     Todo:
@@ -62,23 +70,23 @@ class GDriveTools():
     destinationList = self.__getPathListForPath(destination)
 
     # Try to obtain the id of the drive with the given name
-    sharedDriveId = self.__getIdOfSharedDrive(destinationList[0]) if len(destinationList) > 0 else ''
-    if sharedDriveId:
+    driveId, isSharedDrive = self.__getDriveId(destinationList[0]) if len(destinationList) > 0 else ('', False)
+    if isSharedDrive:
       destinationList = destinationList[1:]
 
-    directoriesFromClipboard = self.__getAllDirectoriesFromClipboard(sharedDriveId)
+    directoriesFromClipboard = self.__getAllDirectoriesFromClipboard(driveId, isSharedDrive)
 
     # If the target directory list is empty, the document should be created
     # inside the root directory.
     if len(destinationList) == 0:
-      targetDirectoryId = sharedDriveId
+      targetDirectoryId = driveId
 
     else:
-      directoryTreeForFile = self.__buildDirectoryListForPath(directoriesFromClipboard, destinationList, sharedDriveId)
-      targetDirectoryId = self.__searchForTargetDirectory(directoryTreeForFile, sharedDriveId, destinationList)
+      directoryTreeForFile = self.__buildDirectoryListForPath(directoriesFromClipboard, destinationList, driveId)
+      targetDirectoryId = self.__searchForTargetDirectory(directoryTreeForFile, driveId, destinationList)
 
     # Create the Document
-    createdDocumentId = self.__createFile(documentName, fileType)
+    createdDocumentId = self.__createFile(documentName, fileType, **kwargs)
 
     # After creation, we have to move the document to the target
     # directory. This is because there seems to be no way to directly attach
@@ -194,6 +202,7 @@ class GDriveTools():
     Returns (str):
       The dictionary which contains the sheets content.
     """
+
     a1Range = f"'{sheetName}'" if not a1Range else f"'{sheetName}'!{a1Range}"
 
     response = self.__googleSheetsClient\
@@ -207,27 +216,106 @@ class GDriveTools():
 
     return sheetAsDict
 
+  def readDirectory(self, path: str):
+    """
+    Reads the directory from the given path and returns the ID of the
+    directory and each file with the properties 'name', 'id' and 'type'.
+
+    The returned Dictionary has the following keys:
+      * directory_id: ID of the directory
+      * files: List of files, found inside this directory.
+
+    Whereas each file - directory has the following properties:
+      * name: Name of the file
+      * id: ID of the file
+      * type: filetype
+
+    Args:
+      path(str): The path of the directory which should be read.
+
+    Returns:
+      A dictionary which contains the Id of the directory behind the passed path
+      and all files inside it.
+
+    Throws:
+      * ValueError: If the directory behind the path does not exists.
+    """
+    pathAsList = self.__getPathListForPath(path)
+    filesFromDir, directoryId = self.__readFilesFromDirectory(pathAsList)
+
+    if filesFromDir is None:
+      raise ValueError(f'The directory {path} was not found.')
+
+    retDict = {}
+    retDict['directory_id'] = directoryId
+
+    for currentFile in filesFromDir:
+      mimeType = currentFile.pop('mimeType')
+      currentFile['type'] = self.__convertMimeType(mimeType)
+
+    retDict['files'] = filesFromDir
+
+    return retDict
+
+  def getDocumentId(self, path: str):
+    """
+    Returns the document id of the document, which can be found
+    under the provided path.
+
+    Args:
+      * path(str): The path to the document, whose Id should be
+        returned.
+
+    Returns:
+      The Id of the document, which is stored on the provided path,
+      or an empty string, if the document does not exists.
+    """
+    directories, filename = self.__getPathAndFilename(path)
+    filesFromDirectory = self.__readFilesFromDirectory(directories)[0]
+    if not filesFromDirectory:
+      return ''
+
+    fileId = ''
+    for currentFile in filesFromDirectory:
+      if currentFile['name'] == filename and not 'folder' in currentFile['mimeType']:
+        fileId = currentFile['id']
+        break
+
+    return fileId
 
   def __moveDocument(self, sourcePath, targetPath, copy=False):
     sourcePathAsList, sourceFileName = self.__getPathAndFilename(sourcePath)
     targetPathAsList, targetFileName = self.__getPathAndFilename(targetPath)
 
     driveId, isSharedDrive  = self.__getDriveId(sourcePathAsList[0]) if len(sourcePathAsList) > 0 else ''
+    targetDriveId, isTargetSharedDrive = self.__getDriveId(targetPathAsList[0]) if len(targetPathAsList) > 0 else ''
+    targetDriveIsDifferent = driveId != targetDriveId
 
     if isSharedDrive:
       sourcePathAsList = sourcePathAsList[1:]
 
-    everythingFromDrive = self.__getAllFilesOfDrive(driveId, isSharedDrive)
-    directories, files = self.__orderDirectoriesAndFiles(everythingFromDrive)
+    if isTargetSharedDrive:
+      targetPathAsList = targetPathAsList[1:]
 
-    parentDirectoryId = self.__getParentDirectoryId(directories, sourcePathAsList, driveId)
-    sourceDocumentId = self.__findDocumentIdWithParentId(files, sourceFileName, parentDirectoryId)
+    everythingFromSrcDrive = self.__getAllFilesOfDrive(driveId, isSharedDrive)
+    srcDirectories, srcFiles = self.__orderDirectoriesAndFiles(everythingFromSrcDrive)
+
+    parentDirectoryId = self.__getParentDirectoryId(srcDirectories, sourcePathAsList, driveId)
+    sourceDocumentId = self.__findDocumentIdWithParentId(srcFiles, sourceFileName, parentDirectoryId)
 
     if not sourceDocumentId:
       raise ValueError(f'Document "{sourcePath}" not found!')
 
-    targetDirectoryTree = self.__buildDirectoryListForPath(directories, targetPathAsList, driveId)
-    targetDirectoryId = self.__searchForTargetDirectory(targetDirectoryTree, driveId, targetPathAsList)
+    targetDirectories = []
+
+    if targetDriveIsDifferent:
+      everythingFromTargetDrive = self.__getAllFilesOfDrive(targetDriveId, isTargetSharedDrive)
+      targetDirectories = self.__orderDirectoriesAndFiles(everythingFromTargetDrive)[0]
+    else:
+      targetDirectories = srcDirectories
+
+    targetDirectoryTree = self.__buildDirectoryListForPath(targetDirectories, targetPathAsList, targetDriveId)
+    targetDirectoryId = self.__searchForTargetDirectory(targetDirectoryTree, targetDriveId, targetPathAsList)
 
     if copy:
       copiedDocumentId = self.__googleDriveClient.files()\
@@ -241,6 +329,24 @@ class GDriveTools():
     self.__moveDocumentToDirectory(sourceDocumentId, targetDirectoryId, targetFileName=targetFileName)
 
     return sourceDocumentId
+
+  def __readFilesFromDirectory(self, pathList):
+    # Try to obtain the id of the drive with the given name
+    driveId, isSharedDrive = self.__getDriveId(pathList[0]) if len(pathList) > 0 else ('', False)
+    if isSharedDrive:
+      pathList = pathList[1:]
+
+    directoriesFromClipboard = self.__getAllDirectoriesFromClipboard(driveId, isSharedDrive)
+    dirTree = self.__buildDirectoryListForPath(directoriesFromClipboard, pathList, driveId)
+
+    directoryNotFound = dirTree[-1].get('name') != pathList[-1]
+    if directoryNotFound:
+      return None, ''
+
+    directoryId = dirTree[-1].get('id')
+    filesFromDir = self.__getFilesFromDirectory(directoryId, isSharedDrive)
+
+    return filesFromDir, directoryId
 
   def __getDriveId(self, driveName):
     driveId = self.__getIdOfSharedDrive(driveName)
@@ -272,9 +378,9 @@ class GDriveTools():
     rootDrive = self.__googleDriveClient.files().get(fileId='root', fields="id").execute()
     return rootDrive.get('id')
 
-  def __getAllDirectoriesFromClipboard(self, clipboardId):
+  def __getAllDirectoriesFromClipboard(self, clipboardId, isSharedDrive):
     files = []
-    if clipboardId:
+    if isSharedDrive:
       files = self.__googleDriveClient \
         .files() \
         .list(
@@ -315,6 +421,27 @@ class GDriveTools():
 
     return files['files']
 
+  def __getFilesFromDirectory(self, directoryId, isSharedDrive):
+    queryResult = None
+    if isSharedDrive:
+      queryResult = self.__googleDriveClient\
+      .files()\
+      .list(
+        includeItemsFromAllDrives=True,
+        supportsAllDrives=True,
+        q=f"'{directoryId}' in parents and not trashed",
+        fields='files(id, name, mimeType)') \
+      .execute()
+    else:
+      queryResult = self.__googleDriveClient\
+        .files()\
+        .list(
+          q=f"'{directoryId}' in parents and not trashed",
+          fields='files(id, name, mimeType)') \
+        .execute()
+
+    return queryResult['files']
+
   def __searchForTargetDirectory(self, directoryTree, driveId, destinationPath):
     targetDirectoryId = directoryTree[-1].get('id') if len(directoryTree) > 0 else driveId
 
@@ -345,20 +472,22 @@ class GDriveTools():
     return createdDirectory.get('id')
 
 
-  def __createFile(self, name, filetype):
+  def __createFile(self, name, filetype, **kwargs):
     createdFileId = ''
 
     if filetype == GoogleFiletypes.DOCUMENT:
       createdFileId = self.__createDocument(name)
 
     elif filetype == GoogleFiletypes.SHEET:
-      createdFileId = self.__createSheet(name)
+      createdFileId = self.__createSheet(name, **kwargs)
 
     elif filetype == GoogleFiletypes.SLIDE:
       createdFileId = self.__createSlide(name)
 
     else:
-      raise ValueError('The Given Filetype is not valid!')
+      message = "The given Filetype is currently not supported. Supported filetypes are: "\
+        "DOCUMENT, SHEET and SLIDE."
+      raise ValueError(message)
 
     return createdFileId
 
@@ -370,11 +499,18 @@ class GDriveTools():
 
     return createdDocument.get('documentId')
 
-  def __createSheet(self, sheetName):
+  def __createSheet(self, sheetName, firstSheetName=''):
     requestBody = {
       'properties': {
         'title': sheetName
-      }
+      },
+      'sheets': [
+        {
+          'properties': {
+            'title': firstSheetName
+          }
+        }
+      ]
     }
 
     createdSpreadsheetId = self.__googleSheetsClient.spreadsheets()\
@@ -425,7 +561,12 @@ class GDriveTools():
   @staticmethod
   def __getPathListForPath(sourcePath):
     pathList = sourcePath.split('/')
-    return pathList if pathList[0] != '' else pathList[1:]
+
+    # Remove empty string on the start and end of the splitted source path list.
+    pathList = pathList if pathList[0] != '' else pathList[1:]
+    pathList = pathList if pathList[-1] != '' else pathList[:-1]
+
+    return pathList
 
   @staticmethod
   def __orderDirectoriesAndFiles(filesToOrder):
@@ -526,7 +667,7 @@ class GDriveTools():
     columns = data[0]
     outList = []
 
-    for rowIndex, currentData in enumerate(data[1:]):
+    for currentData in data[1:]:
       dictToAppend = {}
       for index, currentColumn in enumerate(columns):
         if index < len(currentData) and currentData[index]:
@@ -534,8 +675,33 @@ class GDriveTools():
         elif currentColumn in placeholder:
           dictToAppend[currentColumn] = placeholder[currentColumn]
         else:
-          raise ValueError(f'Undefined column named "{currentColumn}" in row {rowIndex}')
+          dictToAppend[currentColumn] = None
 
       outList.append(dictToAppend)
 
     return outList
+
+  @staticmethod
+  def __convertMimeType(mimeType):
+    if mimeType == 'application/vnd.google-apps.document':
+      return GoogleFiletypes.DOCUMENT
+    elif mimeType == 'application/vnd.google-apps.spreadsheet':
+      return GoogleFiletypes.SHEET
+    elif mimeType == 'application/vnd.google-apps.presentation':
+      return GoogleFiletypes.SLIDE
+    elif mimeType == 'application/vnd.google-apps.drawing':
+      return GoogleFiletypes.DRAWING
+    elif mimeType == 'application/vnd.google-apps.form':
+      return GoogleFiletypes.FORM
+    elif mimeType == 'application/vnd.google-apps.fusiontable':
+      return GoogleFiletypes.FUSIONTABLE
+    elif mimeType == 'application/vnd.google-apps.map':
+      return GoogleFiletypes.MAP
+    elif mimeType == 'application/vnd.google-apps.script':
+      return GoogleFiletypes.APPSCRIPT
+    elif mimeType == 'application/vnd.google-apps.site':
+      return GoogleFiletypes.SITE
+    elif mimeType == 'application/vnd.google-apps.drive-sdk':
+      return GoogleFiletypes.DRIVESDK
+    else:
+      return GoogleFiletypes.FILE
