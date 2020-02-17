@@ -6,7 +6,7 @@ def read(fname):
 
 setuptools.setup(
   name="gdrive-tools",
-  version="v1.1.0",
+  version="v1.2.0",
   author="Robin Palkovits",
   author_email="robin.palkovits@5minds.de",
   license="mit",
