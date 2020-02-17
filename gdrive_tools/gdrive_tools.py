@@ -485,7 +485,9 @@ class GDriveTools():
       createdFileId = self.__createSlide(name)
 
     else:
-      raise ValueError('The Given Filetype is not valid!')
+      message = "The given Filetype is currently not supported. Supported filetypes are: "\
+        "DOCUMENT, SHEET and SLIDE."
+      raise ValueError(message)
 
     return createdFileId
 
