@@ -1,6 +1,5 @@
 """
-This example reads the content of a directory and writes the files from the
-directory to the console.
+This example returns the Id of a document in a given path.
 """
 
 import gdrive_tools.gdrive_tools as gt
@@ -22,7 +21,7 @@ def main():
   # Create the google drive tools client with your local credentials.
   googleDriveTools = gt.GDriveTools(creds)
 
-  # For the demonstation of the readDirectory() method, we want to
+  # For the demonstation of the getDocumentId() method, we want to
   # create a file called 'sample' in the 'simple/test' directory on our
   # local drive first.
   destinationPath = 'simple/test'
@@ -30,14 +29,11 @@ def main():
   googleDriveTools.createFile(destinationPath, docname, GoogleFiletypes.DOCUMENT)
 
   # Now we want to read the content of the 'simple/test' directory.
-  directoryContent = googleDriveTools.readDirectory(destinationPath)
-
-  print(f"The directory has the following ID: {directoryContent['directory_id']}")
-  print("The following files are currently stored inside the directory:\n")
-  for currentFile in directoryContent['files']:
-    print(f"Filename:\t{currentFile['name']}")
-    print(f"File Id:\t{currentFile['id']}")
-    print(f"Mime Type:\t{currentFile['type']}\n")
+  # Since this method expects the full path to the document, we need to
+  # append the filename to the current path.
+  destinationPath = f'{destinationPath}/{docname}'
+  documentId = googleDriveTools.getDocumentId(destinationPath)
+  print(f'The Id of the document stored in {destinationPath} is: {documentId}')
 
 if __name__ == '__main__':
   main()

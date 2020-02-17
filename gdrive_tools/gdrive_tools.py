@@ -1,3 +1,5 @@
+import re
+
 from typing import List
 from googleapiclient.discovery import build
 from googleapiclient import errors
@@ -238,23 +240,11 @@ class GDriveTools():
     Throws:
       * ValueError: If the directory behind the path does not exists.
     """
-    # Convert the given Path into a List
-    destinationList = self.__getPathListForPath(path)
+    pathAsList = self.__getPathListForPath(path)
+    filesFromDir, directoryId = self.__readFilesFromDirectory(pathAsList)
 
-    # Try to obtain the id of the drive with the given name
-    driveId, isSharedDrive = self.__getDriveId(destinationList[0]) if len(destinationList) > 0 else ('', False)
-    if isSharedDrive:
-      destinationList = destinationList[1:]
-
-    directoriesFromClipboard = self.__getAllDirectoriesFromClipboard(driveId, isSharedDrive)
-    dirTree = self.__buildDirectoryListForPath(directoriesFromClipboard, destinationList, driveId)
-
-    directoryNotFound = dirTree[-1].get('name') != destinationList[-1]
-    if directoryNotFound:
-      raise ValueError(f'The Directory {path} does not exists.')
-
-    directoryId = dirTree[-1].get('id')
-    filesFromDir = self.__getFilesFromDirectory(directoryId, isSharedDrive)
+    if filesFromDir is None:
+      raise ValueError(f'The directory {path} was not found.')
 
     retDict = {}
     retDict['directory_id'] = directoryId
@@ -265,6 +255,32 @@ class GDriveTools():
     retDict['files'] = filesFromDir
 
     return retDict
+
+  def getDocumentId(self, path: str):
+    """
+    Returns the document id of the document, which can be found
+    under the provided path.
+
+    Args:
+      * path(str): The path to the document, whose Id should be
+        returned.
+
+    Returns:
+      The Id of the document, which is stored on the provided path,
+      or an empty string, if the document does not exists.
+    """
+    directories, filename = self.__getPathAndFilename(path)
+    filesFromDirectory = self.__readFilesFromDirectory(directories)[0]
+    if not filesFromDirectory:
+      return ''
+
+    fileId = ''
+    for currentFile in filesFromDirectory:
+      if currentFile['name'] == filename and not 'folder' in currentFile['mimeType']:
+        fileId = currentFile['id']
+        break
+
+    return fileId
 
   def __moveDocument(self, sourcePath, targetPath, copy=False):
     sourcePathAsList, sourceFileName = self.__getPathAndFilename(sourcePath)
@@ -312,6 +328,24 @@ class GDriveTools():
     self.__moveDocumentToDirectory(sourceDocumentId, targetDirectoryId, targetFileName=targetFileName)
 
     return sourceDocumentId
+
+  def __readFilesFromDirectory(self, pathList):
+    # Try to obtain the id of the drive with the given name
+    driveId, isSharedDrive = self.__getDriveId(pathList[0]) if len(pathList) > 0 else ('', False)
+    if isSharedDrive:
+      pathList = pathList[1:]
+
+    directoriesFromClipboard = self.__getAllDirectoriesFromClipboard(driveId, isSharedDrive)
+    dirTree = self.__buildDirectoryListForPath(directoriesFromClipboard, pathList, driveId)
+
+    directoryNotFound = dirTree[-1].get('name') != pathList[-1]
+    if directoryNotFound:
+      return None, ''
+
+    directoryId = dirTree[-1].get('id')
+    filesFromDir = self.__getFilesFromDirectory(directoryId, isSharedDrive)
+
+    return filesFromDir, directoryId
 
   def __getDriveId(self, driveName):
     driveId = self.__getIdOfSharedDrive(driveName)
@@ -394,14 +428,14 @@ class GDriveTools():
       .list(
         includeItemsFromAllDrives=True,
         supportsAllDrives=True,
-        q=f"'{directoryId}' in parents",
+        q=f"'{directoryId}' in parents and not trashed",
         fields='files(id, name, mimeType)') \
       .execute()
     else:
       queryResult = self.__googleDriveClient\
         .files()\
         .list(
-          q=f"'{directoryId}' in parents",
+          q=f"'{directoryId}' in parents and not trashed",
           fields='files(id, name, mimeType)') \
         .execute()
 
@@ -524,7 +558,12 @@ class GDriveTools():
   @staticmethod
   def __getPathListForPath(sourcePath):
     pathList = sourcePath.split('/')
-    return pathList if pathList[0] != '' else pathList[1:]
+
+    # Remove empty string on the start and end of the splitted source path list.
+    pathList = pathList if pathList[0] != '' else pathList[1:]
+    pathList = pathList if pathList[-1] != '' else pathList[:-1]
+
+    return pathList
 
   @staticmethod
   def __orderDirectoriesAndFiles(filesToOrder):

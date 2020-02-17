@@ -203,6 +203,21 @@ This method returns the dictionary, which is described above.
 A _ValueError_ is thrown, if the given directory does
 not exists.
 
+### Return the Id of a Document
+
+If you just want to know the Id of a document which is saved in a given path,
+you can query it by using the `getDocumentId()` method.
+
+This method only takes one parameter:
+
+Args:
+  * `path(str)`: The path to the document, whose Id should be
+    returned.
+
+Returns:
+  The Id of the document, which is stored on the provided path, or an empty
+  string, if the document does not exists.
+
 ## Example
 
 You can test the library using the given `example.py` script.
