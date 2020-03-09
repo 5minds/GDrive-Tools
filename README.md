@@ -43,6 +43,25 @@ credentials = auth.createCredentials()
 googleDriveToolsClient = gt.GoogleDriveTools(credentials)
 ```
 
+### Change the Location of the Pickled Token
+
+You can modify, where the file, containing your pickled token object
+should be stored. This can be done by using the following keyword
+arguments on the `GoogleAuth` constructor.
+
+The keyword arguments have the following meanings:
+* `tokenPath`: Defines the directory, where the token should be stored.
+  The token path **must not end with a leading slash!**
+    * _Default: '.'_
+*  `tokenFileName`: Defines the filename of the token file itself.
+    * _Default: 'token.pickle'_
+
+Example:
+
+```python
+auth = ga.GoogleAuth(SCOPED, tokenPath='../token', tokenFileName='Token1.pickle')
+```
+
 ## Capabilities
 
 With the GDrive tools library, you can do the following things:
